@@ -44,6 +44,11 @@ st.markdown(
             --card-bg: #101624;
             --card-bg-elevated: #151c2c;
             --card-bg-muted: #0d1320;
+            --paper-bg: #ffffff;
+            --paper-bg-soft: #f7f9fc;
+            --paper-text: #172033;
+            --paper-muted: #647089;
+            --paper-border: #dce4ef;
             --text-main: #f4f7fb;
             --text-muted: #8f9bb2;
             --text-subtle: #647084;
@@ -201,13 +206,11 @@ st.markdown(
         }
 
         .completion-card {
-            border: 1px solid var(--border-soft);
+            border: 1px solid var(--paper-border);
             border-radius: var(--radius);
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
-                var(--card-bg-elevated);
+            background: var(--paper-bg);
             padding: 0.9rem;
-            box-shadow: var(--inner-shadow);
+            box-shadow: 0 14px 30px rgba(6, 14, 28, 0.20);
         }
 
         .completion-top {
@@ -230,14 +233,14 @@ st.markdown(
             height: 42px;
             object-fit: contain;
             flex: 0 0 auto;
-            border: 1px solid rgba(255, 255, 255, 0.12);
+            border: 1px solid #e2e8f0;
             border-radius: 8px;
             background: #ffffff;
             padding: 0.18rem;
         }
 
         .completion-name {
-            color: var(--text-main);
+            color: var(--paper-text);
             font-weight: 760;
         }
 
@@ -252,7 +255,7 @@ st.markdown(
             height: 12px;
             overflow: hidden;
             border-radius: 999px;
-            background: rgba(148, 163, 184, 0.18);
+            background: #e7edf5;
         }
 
         .progress-fill {
@@ -268,7 +271,7 @@ st.markdown(
             justify-content: space-between;
             gap: 0.75rem;
             margin-top: 0.65rem;
-            color: var(--text-muted);
+            color: var(--paper-muted);
             font-size: 0.82rem;
             font-weight: 680;
         }
@@ -285,13 +288,11 @@ st.markdown(
             display: grid;
             grid-template-rows: 1fr auto;
             min-height: 252px;
-            border: 1px solid var(--border-soft);
+            border: 1px solid var(--paper-border);
             border-radius: var(--radius);
             padding: 0.75rem 0.75rem 0.65rem;
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
-                var(--card-bg-elevated);
-            box-shadow: var(--inner-shadow);
+            background: var(--paper-bg);
+            box-shadow: 0 14px 30px rgba(6, 14, 28, 0.20);
         }
 
         .bar-stage {
@@ -301,11 +302,11 @@ st.markdown(
             gap: 1rem;
             min-height: 188px;
             padding: 0.75rem 0.6rem 0;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--paper-border);
             background:
-                linear-gradient(to top, transparent 48px, rgba(148, 163, 184, 0.16) 49px, transparent 50px),
-                linear-gradient(to top, transparent 96px, rgba(148, 163, 184, 0.16) 97px, transparent 98px),
-                linear-gradient(to top, transparent 144px, rgba(148, 163, 184, 0.16) 145px, transparent 146px);
+                linear-gradient(to top, transparent 48px, rgba(100, 112, 137, 0.18) 49px, transparent 50px),
+                linear-gradient(to top, transparent 96px, rgba(100, 112, 137, 0.18) 97px, transparent 98px),
+                linear-gradient(to top, transparent 144px, rgba(100, 112, 137, 0.18) 145px, transparent 146px);
         }
 
         .bar-wrap {
@@ -338,7 +339,7 @@ st.markdown(
         }
 
         .bar-label {
-            color: var(--text-muted);
+            color: var(--paper-muted);
             font-size: 0.74rem;
             font-weight: 760;
             text-transform: uppercase;
@@ -351,7 +352,11 @@ st.markdown(
             gap: 0.75rem;
             padding: 0.7rem 0.25rem 0;
             font-weight: 760;
-            color: var(--text-main);
+            color: var(--paper-text);
+        }
+
+        .portfolio-label span:last-child {
+            color: var(--paper-muted);
         }
 
         /* === Native Streamlit widget polish. === */
@@ -440,6 +445,7 @@ st.markdown(
         .table-wrap {
             width: 100%;
             overflow-x: auto;
+            background: var(--paper-bg);
         }
 
         .styled-table {
@@ -447,20 +453,21 @@ st.markdown(
             min-width: 920px;
             border-collapse: collapse;
             font-size: 0.88rem;
-            color: var(--text-main);
+            color: var(--paper-text);
+            background: var(--paper-bg);
         }
 
         .styled-table th,
         .styled-table td {
             text-align: left;
             vertical-align: top;
-            border-bottom: 1px solid var(--border);
+            border-bottom: 1px solid var(--paper-border);
             padding: 0.62rem 0.75rem;
         }
 
         .styled-table th {
-            background: rgba(255, 255, 255, 0.045);
-            color: #a8b3c7;
+            background: var(--paper-bg-soft);
+            color: #596780;
             font-size: 0.74rem;
             font-weight: 780;
             text-transform: uppercase;
@@ -468,11 +475,11 @@ st.markdown(
         }
 
         .styled-table td {
-            color: #dce5f4;
+            color: var(--paper-text);
         }
 
         .styled-table tr:hover td {
-            background: rgba(124, 92, 255, 0.07);
+            background: #f4f7ff;
         }
 
         .status-badge,
@@ -508,9 +515,9 @@ st.markdown(
         }
 
         .link-badge {
-            color: #c7d2fe;
-            background: rgba(124, 92, 255, 0.16);
-            border: 1px solid rgba(124, 92, 255, 0.28);
+            color: #4f3ed8;
+            background: rgba(124, 92, 255, 0.12);
+            border: 1px solid rgba(124, 92, 255, 0.22);
             text-decoration: none;
         }
 
