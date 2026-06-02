@@ -37,24 +37,32 @@ LOGO_URIS = {name: asset_data_uri(path) for name, path in LOGO_PATHS.items()}
 st.markdown(
     """
     <style>
-        /* === Design tokens: adjust these to tune the dashboard palette quickly. === */
+        /* === Dark SaaS design tokens: adjust these to tune the dashboard palette quickly. === */
         :root {
-            --app-bg: #f6f7f9;
-            --card-bg: #ffffff;
-            --text-main: #172033;
-            --text-muted: #657184;
-            --border: #d9e0ea;
-            --border-soft: #e8edf5;
-            --accent: #2f65d6;
-            --live: #16835b;
-            --live-soft: #dff4eb;
-            --new: #b36a0a;
-            --new-soft: #fff1d6;
-            --issue: #b42318;
-            --issue-soft: #ffe5e1;
-            --shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
-            --radius: 8px;
-            --font-stack: "Segoe UI", Arial, sans-serif;
+            --app-bg: #070a12;
+            --app-bg-soft: #0b1020;
+            --card-bg: #101624;
+            --card-bg-elevated: #151c2c;
+            --card-bg-muted: #0d1320;
+            --text-main: #f4f7fb;
+            --text-muted: #8f9bb2;
+            --text-subtle: #647084;
+            --border: rgba(148, 163, 184, 0.18);
+            --border-strong: rgba(148, 163, 184, 0.28);
+            --border-soft: rgba(148, 163, 184, 0.12);
+            --accent: #7c5cff;
+            --accent-2: #38bdf8;
+            --accent-soft: rgba(124, 92, 255, 0.18);
+            --live: #3ddc97;
+            --live-soft: rgba(61, 220, 151, 0.14);
+            --new: #f6b451;
+            --new-soft: rgba(246, 180, 81, 0.15);
+            --issue: #ff6b81;
+            --issue-soft: rgba(255, 107, 129, 0.14);
+            --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
+            --inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+            --radius: 12px;
+            --font-stack: Inter, "SF Pro Display", "Segoe UI", Arial, sans-serif;
         }
 
         /* === Streamlit shell overrides. === */
@@ -63,17 +71,24 @@ st.markdown(
         }
 
         .stApp {
-            background: var(--app-bg);
+            background:
+                radial-gradient(circle at top left, rgba(124, 92, 255, 0.16), transparent 34rem),
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 28rem),
+                linear-gradient(180deg, var(--app-bg-soft), var(--app-bg) 38rem);
             color: var(--text-main);
         }
 
         .block-container {
             max-width: 1440px;
-            padding: 1.35rem 2rem 2.5rem;
+            padding: 1.2rem 2rem 2.4rem;
         }
 
         header[data-testid="stHeader"] {
             background: transparent;
+        }
+
+        #MainMenu, footer {
+            visibility: hidden;
         }
 
         div[data-testid="stToolbar"] {
@@ -85,7 +100,7 @@ st.markdown(
         }
 
         hr {
-            margin: 1rem 0;
+            margin: 0.85rem 0 1rem;
             border-color: var(--border);
         }
 
@@ -95,14 +110,14 @@ st.markdown(
             align-items: flex-end;
             justify-content: space-between;
             gap: 1rem;
-            margin: 0 0 1rem;
+            margin: 0 0 0.9rem;
         }
 
         .app-title {
             margin: 0;
             color: var(--text-main);
-            font-size: clamp(2rem, 4vw, 2.75rem);
-            font-weight: 750;
+            font-size: clamp(2.1rem, 4vw, 3rem);
+            font-weight: 780;
             line-height: 1.05;
         }
 
@@ -114,8 +129,8 @@ st.markdown(
 
         .as-of-pill {
             flex: 0 0 auto;
-            color: #384456;
-            background: #eef2f7;
+            color: #c9d3e6;
+            background: rgba(255, 255, 255, 0.055);
             border: 1px solid var(--border);
             border-radius: 999px;
             padding: 0.45rem 0.75rem;
@@ -124,12 +139,34 @@ st.markdown(
         }
 
         .section-card {
-            background: var(--card-bg);
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+                var(--card-bg);
             border: 1px solid var(--border);
             border-radius: var(--radius);
             box-shadow: var(--shadow);
-            margin: 1rem 0;
+            margin: 0.95rem 0;
             overflow: hidden;
+            backdrop-filter: blur(14px);
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
+                var(--card-bg) !important;
+            border: 1px solid var(--border) !important;
+            border-radius: var(--radius) !important;
+            box-shadow: var(--shadow);
+            padding: 0 !important;
+            overflow: hidden;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            padding: 0 !important;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] .stHorizontalBlock {
+            padding: 1rem;
         }
 
         .section-heading {
@@ -137,21 +174,22 @@ st.markdown(
             align-items: center;
             justify-content: space-between;
             gap: 1rem;
-            padding: 1rem 1rem 0.7rem;
+            padding: 1rem 1rem 0.75rem;
             border-bottom: 1px solid var(--border);
+            box-shadow: var(--inner-shadow);
         }
 
         .section-heading h2 {
             margin: 0;
             color: var(--text-main);
             font-size: 1.12rem;
-            font-weight: 750;
+            font-weight: 760;
         }
 
         .section-heading span {
             color: var(--text-muted);
             font-size: 0.82rem;
-            font-weight: 650;
+            font-weight: 680;
         }
 
         /* === Completion cards. === */
@@ -165,8 +203,11 @@ st.markdown(
         .completion-card {
             border: 1px solid var(--border-soft);
             border-radius: var(--radius);
-            background: #fbfcfe;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.015)),
+                var(--card-bg-elevated);
             padding: 0.9rem;
+            box-shadow: var(--inner-shadow);
         }
 
         .completion-top {
@@ -189,8 +230,10 @@ st.markdown(
             height: 42px;
             object-fit: contain;
             flex: 0 0 auto;
-            border-radius: 4px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 8px;
             background: #ffffff;
+            padding: 0.18rem;
         }
 
         .completion-name {
@@ -209,13 +252,14 @@ st.markdown(
             height: 12px;
             overflow: hidden;
             border-radius: 999px;
-            background: #e8edf5;
+            background: rgba(148, 163, 184, 0.18);
         }
 
         .progress-fill {
             height: 100%;
             border-radius: inherit;
-            background: linear-gradient(90deg, var(--live), #36a87d);
+            background: linear-gradient(90deg, var(--live), var(--accent-2));
+            box-shadow: 0 0 18px rgba(61, 220, 151, 0.25);
         }
 
         .completion-meta {
@@ -224,7 +268,7 @@ st.markdown(
             justify-content: space-between;
             gap: 0.75rem;
             margin-top: 0.65rem;
-            color: #506078;
+            color: var(--text-muted);
             font-size: 0.82rem;
             font-weight: 680;
         }
@@ -244,7 +288,10 @@ st.markdown(
             border: 1px solid var(--border-soft);
             border-radius: var(--radius);
             padding: 0.75rem 0.75rem 0.65rem;
-            background: #fbfcfe;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.012)),
+                var(--card-bg-elevated);
+            box-shadow: var(--inner-shadow);
         }
 
         .bar-stage {
@@ -256,9 +303,9 @@ st.markdown(
             padding: 0.75rem 0.6rem 0;
             border-bottom: 1px solid var(--border);
             background:
-                linear-gradient(to top, transparent 48px, rgba(217, 224, 234, 0.55) 49px, transparent 50px),
-                linear-gradient(to top, transparent 96px, rgba(217, 224, 234, 0.55) 97px, transparent 98px),
-                linear-gradient(to top, transparent 144px, rgba(217, 224, 234, 0.55) 145px, transparent 146px);
+                linear-gradient(to top, transparent 48px, rgba(148, 163, 184, 0.16) 49px, transparent 50px),
+                linear-gradient(to top, transparent 96px, rgba(148, 163, 184, 0.16) 97px, transparent 98px),
+                linear-gradient(to top, transparent 144px, rgba(148, 163, 184, 0.16) 145px, transparent 146px);
         }
 
         .bar-wrap {
@@ -282,10 +329,12 @@ st.markdown(
 
         .bar.live {
             background: var(--live);
+            box-shadow: 0 0 18px rgba(61, 220, 151, 0.20);
         }
 
         .bar.new {
             background: var(--new);
+            box-shadow: 0 0 18px rgba(246, 180, 81, 0.18);
         }
 
         .bar-label {
@@ -302,6 +351,7 @@ st.markdown(
             gap: 0.75rem;
             padding: 0.7rem 0.25rem 0;
             font-weight: 760;
+            color: var(--text-main);
         }
 
         /* === Native Streamlit widget polish. === */
@@ -319,28 +369,71 @@ st.markdown(
 
         div[data-baseweb="select"] > div,
         div[data-testid="stTextInput"] input {
-            background: #ffffff;
+            background: rgba(255, 255, 255, 0.055) !important;
             border-color: var(--border) !important;
             border-radius: 7px !important;
+            color: var(--text-main) !important;
             box-shadow: none !important;
+        }
+
+        div[data-baseweb="select"] > div:hover,
+        div[data-testid="stTextInput"] input:hover {
+            border-color: var(--border-strong) !important;
+        }
+
+        div[data-baseweb="select"] svg,
+        div[data-testid="stTextInput"] svg {
+            color: var(--text-muted) !important;
+            fill: var(--text-muted) !important;
+        }
+
+        div[data-baseweb="tag"] {
+            background: var(--accent-soft) !important;
+            border: 1px solid rgba(124, 92, 255, 0.32) !important;
+            border-radius: 999px !important;
+            color: #eee9ff !important;
+            font-weight: 720 !important;
+        }
+
+        div[data-baseweb="tag"] span {
+            color: #eee9ff !important;
+        }
+
+        div[data-baseweb="tag"] svg {
+            color: #c8bdff !important;
+            fill: #c8bdff !important;
+        }
+
+        ul[role="listbox"] {
+            background: var(--card-bg-elevated) !important;
+            border: 1px solid var(--border) !important;
+            color: var(--text-main) !important;
+        }
+
+        li[role="option"] {
+            color: var(--text-main) !important;
+        }
+
+        li[role="option"]:hover {
+            background: rgba(124, 92, 255, 0.16) !important;
         }
 
         .stButton > button,
         div[data-testid="stDownloadButton"] button {
             min-height: 2.35rem;
-            border: 1px solid #244fbd;
+            border: 1px solid rgba(124, 92, 255, 0.48);
             border-radius: 7px;
             color: #ffffff;
-            background: var(--accent);
+            background: linear-gradient(135deg, var(--accent), #5a3dce);
             font-weight: 750;
-            box-shadow: none;
+            box-shadow: 0 14px 28px rgba(124, 92, 255, 0.22);
         }
 
         .stButton > button:hover,
         div[data-testid="stDownloadButton"] button:hover {
-            border-color: #244fbd;
+            border-color: rgba(124, 92, 255, 0.72);
             color: #ffffff;
-            background: #2456bd;
+            background: linear-gradient(135deg, #8d73ff, var(--accent));
         }
 
         /* === Status badges, tables, and upcoming migration cards. === */
@@ -354,6 +447,7 @@ st.markdown(
             min-width: 920px;
             border-collapse: collapse;
             font-size: 0.88rem;
+            color: var(--text-main);
         }
 
         .styled-table th,
@@ -365,16 +459,20 @@ st.markdown(
         }
 
         .styled-table th {
-            background: #f8fafc;
-            color: #475569;
+            background: rgba(255, 255, 255, 0.045);
+            color: #a8b3c7;
             font-size: 0.74rem;
             font-weight: 780;
             text-transform: uppercase;
             white-space: nowrap;
         }
 
+        .styled-table td {
+            color: #dce5f4;
+        }
+
         .styled-table tr:hover td {
-            background: #f9fbff;
+            background: rgba(124, 92, 255, 0.07);
         }
 
         .status-badge,
@@ -394,21 +492,25 @@ st.markdown(
         .status-live {
             color: var(--live);
             background: var(--live-soft);
+            border: 1px solid rgba(61, 220, 151, 0.22);
         }
 
         .status-new {
             color: var(--new);
             background: var(--new-soft);
+            border: 1px solid rgba(246, 180, 81, 0.24);
         }
 
         .issue-badge {
             color: var(--issue);
             background: var(--issue-soft);
+            border: 1px solid rgba(255, 107, 129, 0.24);
         }
 
         .link-badge {
-            color: #2c4a8a;
-            background: #e7eefb;
+            color: #c7d2fe;
+            background: rgba(124, 92, 255, 0.16);
+            border: 1px solid rgba(124, 92, 255, 0.28);
             text-decoration: none;
         }
 
@@ -428,8 +530,11 @@ st.markdown(
             gap: 0.75rem;
             border: 1px solid var(--border-soft);
             border-radius: var(--radius);
-            background: #fbfcfe;
+            background:
+                linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.014)),
+                var(--card-bg-elevated);
             padding: 0.9rem;
+            box-shadow: var(--inner-shadow);
         }
 
         .upcoming-top {
@@ -451,8 +556,9 @@ st.markdown(
             flex: 0 0 auto;
             border-radius: 999px;
             padding: 0.22rem 0.55rem;
-            color: #26415d;
-            background: #e9f0f8;
+            color: #b9e7ff;
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.24);
             font-size: 0.72rem;
             font-weight: 780;
             white-space: nowrap;
@@ -467,12 +573,18 @@ st.markdown(
         }
 
         .upcoming-value {
-            color: #334155;
+            color: #dce5f4;
             font-size: 0.86rem;
         }
 
         .plot-card {
             padding: 0.35rem 0.85rem 0.85rem;
+        }
+
+        .stCaptionContainer,
+        .stMarkdown,
+        .stMarkdown p {
+            color: var(--text-muted);
         }
 
         @media (max-width: 980px) {
@@ -925,24 +1037,25 @@ st.divider()
 # Filters
 # ----------------------------
 
-st.markdown(section_heading("Filters", "Refine the channel view"), unsafe_allow_html=True)
-left, right = st.columns([1, 2])
+with st.container(border=True):
+    st.markdown(section_heading("Filters", "Refine the channel view"), unsafe_allow_html=True)
+    left, right = st.columns([1, 2])
 
-with left:
-    portfolio_filter = st.multiselect(
-        "Customer",
-        options=sorted(df_channels["portfolio"].unique()),
-        default=sorted(df_channels["portfolio"].unique()),
-    )
+    with left:
+        portfolio_filter = st.multiselect(
+            "Customer",
+            options=sorted(df_channels["portfolio"].unique()),
+            default=sorted(df_channels["portfolio"].unique()),
+        )
 
-    status_filter = st.multiselect(
-        "Status",
-        options=sorted(df_channels["status"].unique()),
-        default=sorted(df_channels["status"].unique()),
-    )
+        status_filter = st.multiselect(
+            "Status",
+            options=sorted(df_channels["status"].unique()),
+            default=sorted(df_channels["status"].unique()),
+        )
 
-with right:
-    search_text = st.text_input("Search channels / customers / notes", value="")
+    with right:
+        search_text = st.text_input("Search channels / customers / notes", value="")
 
 filtered_channels = df_channels[
     df_channels["portfolio"].isin(portfolio_filter)
