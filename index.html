@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Chain Status Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f7f9;
+      --panel: #ffffff;
+      --text: #1c2430;
+      --muted: #657184;
+      --border: #d9e0ea;
+      --accent: #2f65d6;
+      --live: #16835b;
+      --live-soft: #dff4eb;
+      --new: #b36a0a;
+      --new-soft: #fff1d6;
+      --issue: #b42318;
+      --issue-soft: #ffe5e1;
+      --shadow: 0 8px 24px rgb(30 41 59 / 8%);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: "Segoe UI", Arial, sans-serif;
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .app {
+      width: min(1440px, calc(100vw - 40px));
+      margin: 0 auto;
+      padding: 24px 0 40px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 20px;
+      margin-bottom: 18px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin: 0;
+    }
+
+    h1 {
+      font-size: clamp(28px, 4vw, 44px);
+      font-weight: 720;
+      line-height: 1.05;
+    }
+
+    .caption {
+      color: var(--muted);
+      margin-top: 8px;
+      font-size: 15px;
+    }
+
+    .asof {
+      flex: 0 0 auto;
+      color: #384456;
+      background: #eef2f7;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 7px 12px;
+      white-space: nowrap;
+      font-size: 13px;
+    }
+
+    .progress-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .progress-card {
+      border: 1px solid #e6ebf2;
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 14px;
+    }
+
+    .progress-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 10px;
+    }
+
+    .progress-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .progress-logo {
+      width: 82px;
+      height: 42px;
+      object-fit: contain;
+      flex: 0 0 auto;
+      border-radius: 4px;
+      background: #ffffff;
+    }
+
+    .progress-top strong {
+      font-size: 16px;
+    }
+
+    .progress-percent {
+      font-size: 22px;
+      font-weight: 780;
+      color: var(--accent);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 12px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: #e8edf5;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--live), #36a87d);
+    }
+
+    .progress-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-top: 9px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .toolbar,
+    .section {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+    }
+
+    .toolbar {
+      display: grid;
+      grid-template-columns: minmax(260px, 0.9fr) minmax(360px, 2fr);
+      gap: 18px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .filter-group {
+      border: 0;
+      margin: 0;
+      padding: 0;
+    }
+
+    .filter-group + .filter-group {
+      margin-top: 14px;
+    }
+
+    legend,
+    .field-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 0;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .check-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .check-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 34px;
+      padding: 6px 10px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: #fbfcfe;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .check-pill input {
+      width: 15px;
+      height: 15px;
+      accent-color: var(--accent);
+      margin: 0;
+    }
+
+    .search-wrap input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 8px 12px;
+      color: var(--text);
+      background: #fbfcfe;
+      outline: none;
+    }
+
+    .search-wrap input:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgb(47 101 214 / 15%);
+    }
+
+    .section {
+      margin-top: 16px;
+      overflow: hidden;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 16px 16px 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    h2 {
+      font-size: 18px;
+      font-weight: 720;
+    }
+
+    .chart {
+      padding: 18px 18px 20px;
+    }
+
+    .chart-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(220px, 1fr));
+      gap: 18px;
+      min-height: 280px;
+    }
+
+    .portfolio-chart {
+      display: grid;
+      grid-template-rows: 1fr auto;
+      min-height: 260px;
+      border: 1px solid #e6ebf2;
+      border-radius: 8px;
+      padding: 12px 12px 10px;
+      background: #fbfcfe;
+    }
+
+    .bar-stage {
+      display: flex;
+      align-items: end;
+      justify-content: center;
+      gap: 16px;
+      min-height: 190px;
+      padding: 12px 10px 0;
+      border-bottom: 1px solid var(--border);
+      background:
+        linear-gradient(to top, transparent 48px, rgb(217 224 234 / 55%) 49px, transparent 50px),
+        linear-gradient(to top, transparent 96px, rgb(217 224 234 / 55%) 97px, transparent 98px),
+        linear-gradient(to top, transparent 144px, rgb(217 224 234 / 55%) 145px, transparent 146px);
+    }
+
+    .bar-wrap {
+      display: grid;
+      justify-items: center;
+      gap: 7px;
+      min-width: 82px;
+    }
+
+    .bar {
+      width: 64px;
+      min-height: 8px;
+      border-radius: 6px 6px 0 0;
+      display: flex;
+      align-items: start;
+      justify-content: center;
+      color: #ffffff;
+      font-weight: 750;
+      padding-top: 6px;
+      transition: height 160ms ease;
+    }
+
+    .bar.live {
+      background: var(--live);
+    }
+
+    .bar.new {
+      background: var(--new);
+    }
+
+    .bar-label {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .portfolio-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 11px 4px 0;
+      font-weight: 720;
+    }
+
+    .legend {
+      display: inline-flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot.live {
+      background: var(--live);
+    }
+
+    .dot.new {
+      background: var(--new);
+    }
+
+    .table-wrap {
+      width: 100%;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 980px;
+    }
+
+    th,
+    td {
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 12px;
+    }
+
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: #f8fafc;
+      color: #475569;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0;
+      white-space: nowrap;
+    }
+
+    tbody tr:hover {
+      background: #f9fbff;
+    }
+
+    .status-badge,
+    .link-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 58px;
+      border-radius: 999px;
+      padding: 3px 8px;
+      font-size: 12px;
+      font-weight: 750;
+      line-height: 1.35;
+    }
+
+    .status-badge.live {
+      color: var(--live);
+      background: var(--live-soft);
+    }
+
+    .status-badge.new {
+      color: var(--new);
+      background: var(--new-soft);
+    }
+
+    .link-badge {
+      color: #2c4a8a;
+      background: #e7eefb;
+      text-decoration: none;
+    }
+
+    .blank-link {
+      color: var(--muted);
+    }
+
+    .issue-type {
+      display: inline-flex;
+      border-radius: 999px;
+      padding: 3px 8px;
+      color: var(--issue);
+      background: var(--issue-soft);
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .upcoming-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px;
+      padding: 16px;
+    }
+
+    .upcoming-card {
+      display: grid;
+      gap: 12px;
+      border: 1px solid #e6ebf2;
+      border-radius: 8px;
+      background: #fbfcfe;
+      padding: 14px;
+    }
+
+    .upcoming-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .upcoming-top h3 {
+      font-size: 17px;
+      line-height: 1.2;
+    }
+
+    .hotel-count {
+      flex: 0 0 auto;
+      border-radius: 999px;
+      padding: 4px 9px;
+      color: #26415d;
+      background: #e9f0f8;
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .upcoming-meta {
+      display: grid;
+      gap: 9px;
+      color: #334155;
+    }
+
+    .upcoming-label {
+      display: block;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 760;
+      text-transform: uppercase;
+    }
+
+    .upcoming-link {
+      justify-self: start;
+      display: inline-flex;
+      align-items: center;
+      min-height: 32px;
+      border-radius: 6px;
+      padding: 6px 10px;
+      color: #ffffff;
+      background: #334155;
+      font-weight: 720;
+      text-decoration: none;
+    }
+
+    .upcoming-link:hover {
+      background: #1f2937;
+    }
+
+    .editable {
+      min-width: 140px;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    .editable:focus {
+      box-shadow: inset 0 0 0 2px rgb(47 101 214 / 35%);
+      background: #ffffff;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      padding: 14px 16px;
+      background: #fbfcfe;
+    }
+
+    .btn {
+      min-height: 36px;
+      border: 1px solid #244fbd;
+      border-radius: 6px;
+      padding: 7px 12px;
+      color: #ffffff;
+      background: var(--accent);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .btn:hover {
+      background: #2456bd;
+    }
+
+    .empty {
+      padding: 28px 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    @media (max-width: 880px) {
+      .app {
+        width: min(100vw - 24px, 1440px);
+        padding-top: 16px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .asof {
+        white-space: normal;
+      }
+
+      .toolbar,
+      .chart-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <div>
+        <h1>Chain Status Dashboard</h1>
+        <p class="caption">Implementation projects, channel go-live status, and active issue tracking.</p>
+      </div>
+      <div class="asof">Current view: May 29, 2026</div>
+    </header>
+
+    <section class="section" aria-labelledby="completionTitle">
+      <div class="section-head">
+        <h2 id="completionTitle">Project Completion</h2>
+      </div>
+      <div class="progress-grid" id="completionTracker"></div>
+    </section>
+
+    <section class="toolbar" aria-label="Filters">
+      <div>
+        <fieldset class="filter-group">
+          <legend>Customer</legend>
+          <div class="check-row" id="portfolioFilters"></div>
+        </fieldset>
+
+        <fieldset class="filter-group">
+          <legend>Status</legend>
+          <div class="check-row" id="statusFilters"></div>
+        </fieldset>
+      </div>
+
+      <label class="search-wrap">
+        <div class="field-label">Search channels / customers / notes</div>
+        <input id="searchInput" type="search" autocomplete="off">
+      </label>
+    </section>
+
+    <section class="section" aria-labelledby="chartTitle">
+      <div class="section-head">
+        <h2 id="chartTitle">Channels by Customer and Status</h2>
+        <div class="legend" aria-label="Chart legend">
+          <span class="legend-item"><span class="dot live"></span> LIVE</span>
+          <span class="legend-item"><span class="dot new"></span> NEW</span>
+        </div>
+      </div>
+      <div class="chart" id="statusChart"></div>
+    </section>
+
+    <section class="section" aria-labelledby="channelsTitle">
+      <div class="section-head">
+        <h2 id="channelsTitle">Channel Status</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Project</th>
+              <th>Channel</th>
+              <th>Status</th>
+              <th>Live / Proposed Go-Live</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody id="channelsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="issuesTitle">
+      <div class="section-head">
+        <h2 id="issuesTitle">Issue Tracker</h2>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Customer</th>
+              <th>Project</th>
+              <th>Issue Type</th>
+              <th>Link Type</th>
+              <th>Slack / JIRA Link</th>
+              <th>Summary</th>
+            </tr>
+          </thead>
+          <tbody id="issuesBody"></tbody>
+        </table>
+      </div>
+      <div class="actions">
+        <button class="btn" id="downloadButton" type="button">Download CSV</button>
+      </div>
+    </section>
+
+    <section class="section" aria-labelledby="upcomingTitle">
+      <div class="section-head">
+        <h2 id="upcomingTitle">Upcoming Chain Migrations</h2>
+      </div>
+      <div class="upcoming-grid" id="upcomingMigrations"></div>
+    </section>
+  </main>
+
+  <script>
+    const channelsData = [
+      { portfolio: "Great Wolf", project: "IBE", channel: "IBE", status: "LIVE", goLiveDate: "2026-04-15", notes: "Finalized and handed over to Support." },
+      { portfolio: "Great Wolf", project: "Groupon", channel: "Groupon", status: "LIVE", goLiveDate: "2026-05-07", notes: "All batches migrated; stabilization in progress." },
+      { portfolio: "Great Wolf", project: "Expedia", channel: "Expedia", status: "LIVE", goLiveDate: "2026-05-07", notes: "Pilot + batches 1-3 are live. Remaining properties on pause due to extra person rate issue, under review." },
+      { portfolio: "Great Wolf", project: "HGV", channel: "HGV", status: "NEW", goLiveDate: "", notes: "Connectivity development finalized; partner delays remain." },
+      { portfolio: "Great Wolf", project: "Google via DerbySoft Meta", channel: "Google / DerbySoft Meta", status: "NEW", goLiveDate: "", notes: "Validation in progress by DerbySoft." },
+      { portfolio: "Great Wolf", project: "Booking.com for NIAGON", channel: "Booking.com for NIAGON", status: "NEW", goLiveDate: "2026-06-01", notes: "Separate onboarding track; go-live scheduled." },
+      { portfolio: "Great Wolf", project: "GDS", channel: "GDS", status: "NEW", goLiveDate: "", notes: "Separate workstream, planning in progress." },
+      { portfolio: "Loews", project: "GDS", channel: "GDS", status: "LIVE", goLiveDate: "", notes: "Operational across all 16 properties." },
+      { portfolio: "Loews", project: "Costco Travel", channel: "Costco Travel", status: "LIVE", goLiveDate: "", notes: "Operational across all 16 properties." },
+      { portfolio: "Loews", project: "Expedia", channel: "Expedia", status: "LIVE", goLiveDate: "", notes: "Operational across all 16 properties." },
+      { portfolio: "Loews", project: "Booking.com", channel: "Booking.com", status: "LIVE", goLiveDate: "", notes: "Operational; post-production issues remain." },
+      { portfolio: "Loews", project: "HotelTonight via RateGain", channel: "HotelTonight via RateGain", status: "LIVE", goLiveDate: "", notes: "Operational across all 16 properties." },
+      { portfolio: "Loews", project: "Hopper", channel: "Hopper", status: "LIVE", goLiveDate: "", notes: "Operational across all 16 properties." },
+      { portfolio: "Loews", project: "Agoda", channel: "Agoda", status: "NEW", goLiveDate: "2026-05-29", notes: "Pilot phase; scheduled to go live tomorrow." },
+      { portfolio: "Loews", project: "Cendyn (IBE)", channel: "Cendyn IBE", status: "NEW", goLiveDate: "2026-06-12", notes: "Final validation and CSV import/testing in progress." },
+
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Dida Travel", status: "LIVE", goLiveDate: "2026-02-13", notes: "Activated with switch partner (13 Feb); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Miki Tourist", status: "LIVE", goLiveDate: "2026-02-13", notes: "Activated with switch partner (13 Feb); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "TBO Holidays", status: "LIVE", goLiveDate: "2026-02-13", notes: "Activated with switch partner (13 Feb); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "WebBeds - Sunhotels", status: "LIVE", goLiveDate: "2026-03-13", notes: "Activated with switch partner (13-Mar-26 - PPYGN, 17-Mar-26 - PPDAC, 26-Mar-26 - remaining hotels); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Luxury Escapes", status: "LIVE", goLiveDate: "2026-05-19", notes: "Activated with switch partner (19 May); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Flight Centre Travel", status: "LIVE", goLiveDate: "2026-05-19", notes: "Activated with switch partner (19 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Ly.com", status: "LIVE", goLiveDate: "2026-05-21", notes: "Activated with switch partner (21 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Hotelbeds", status: "LIVE", goLiveDate: "2026-03-11", notes: "Activated with switch partner (11-Mar-26 - PPYGN, 20-Apr-26 - remaining hotels); OTA test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Tiket", status: "LIVE", goLiveDate: "2026-05-20", notes: "Activated with switch partner (20 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Tidesquare", status: "LIVE", goLiveDate: "2026-05-19", notes: "Activated with switch partner (19 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Klook", status: "LIVE", goLiveDate: "2026-05-20", notes: "Activated with switch partner (20 May); pending OTA test booking. Excl. PRLGK, pending room type mapping from PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "G2 Travel", status: "LIVE", goLiveDate: "2026-03-30", notes: "Activated with switch partner (30 Mar); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Hong Kong Convergent", status: "LIVE", goLiveDate: "2026-05-21", notes: "Activated with switch partner (21 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "CN Travel Group", status: "LIVE", goLiveDate: "2026-05-20", notes: "Activated with switch partner (20 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Qiyouji", status: "LIVE", goLiveDate: "2026-05-19", notes: "Activated with switch partner (19 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Toptown Shanghai", status: "LIVE", goLiveDate: "2026-05-19", notes: "Activated with switch partner (19 May); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Keytel", status: "LIVE", goLiveDate: "2026-04-20", notes: "Activated with switch partner (20 Apr); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Tablet LLC", status: "LIVE", goLiveDate: "2026-04-15", notes: "Activated with switch partner (15 Apr); OTA Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Within Earth Holidays", status: "LIVE", goLiveDate: "2026-05-21", notes: "Activated with switch partner (21 May); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Expedia", status: "LIVE", goLiveDate: "2026-01-27", notes: "Activated with OTA (27 Jan); Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Booking.com", status: "LIVE", goLiveDate: "2026-04-24", notes: "Activated with OTA (24 Apr); Test booking confirmed, handed over to support" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Traveloka", status: "LIVE", goLiveDate: "2026-03-13", notes: "Activated with switch partner (13 Mar - PRLGK, 2 Apr - remaining hotels); pending OTA test booking" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "MG Bedbank", status: "NEW", goLiveDate: "", notes: "Pilot property (PRYGN) activated with switch partner (26 May), pending OTA confirmation before proceeding with remaining hotels" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Agoda", status: "NEW", goLiveDate: "", notes: "Configuration with OTA underway" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Trip.com", status: "NEW", goLiveDate: "", notes: "Conversations ongoing between Trip and PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Roibos", status: "NEW", goLiveDate: "", notes: "Roibos in contact with PPHG regarding contractual details, unable to onboard this channel currently" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Goibibo & MakeMyTrip", status: "NEW", goLiveDate: "", notes: "Ongoing configuration work required at OTA end, unable to onboard this channel currently" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Emerging Travel", status: "NEW", goLiveDate: "", notes: "Awaiting confirmation from OTA to proceed" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Nuitee", status: "NEW", goLiveDate: "", notes: "Pending OTA engagement and mapping from PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Inntopia", status: "NEW", goLiveDate: "", notes: "PPHG advised channel will not be part of this batch." },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Rakuten", status: "NEW", goLiveDate: "", notes: "Pending OTA engagement and mapping from PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Travco", status: "NEW", goLiveDate: "", notes: "Pending OTA engagement and mapping from PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "TA Network", status: "NEW", goLiveDate: "", notes: "Pending OTA engagement and mapping from PPHG" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Dnata", status: "NEW", goLiveDate: "", notes: "Ongoing configuration work required at OTA end, unable to onboard this channel currently" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Meituan", status: "NEW", goLiveDate: "", notes: "PPHG advised this channel will go through Derbysoft channel manager" },
+      { portfolio: "Pan Pacific", project: "Pan Pacific", channel: "Bakuun / RateDock", status: "NEW", goLiveDate: "", notes: "Ongoing configuration work required at OTA end, unable to onboard this channel currently" }
+    ];
+
+    const issuesData = [
+      { portfolio: "Great Wolf", project: "Groupon", issueType: "Support / escalation", linkType: "Slack", link: "", summary: "Recent booking failovers have been escalated to Oracle Support and are under review." },
+      { portfolio: "Great Wolf", project: "Expedia", issueType: "Product review", linkType: "Slack", link: "", summary: "Extra-person calculation is under review by the Product Team." },
+      { portfolio: "Great Wolf", project: "HGV", issueType: "Partner delay", linkType: "Slack", link: "", summary: "Oracle side is ready; testing is blocked by partner-side delays." },
+      { portfolio: "Great Wolf", project: "Google via DerbySoft Meta", issueType: "Dependency", linkType: "Slack", link: "", summary: "Meta connectivity is being validated by DerbySoft before ARI push can continue." },
+      { portfolio: "Loews", project: "Booking.com", issueType: "Operational issue", linkType: "JIRA", link: "https://jira.example.com/browse/LOEWS-BOOKING-001", summary: "Reservations are not consistently interfacing into OPERA; email/contact configuration and reservation notes are being investigated." },
+      { portfolio: "Loews", project: "GDS", issueType: "JIRA", linkType: "JIRA", link: "https://jira.example.com/browse/260515-001045", summary: "Free night promotions on rate codes are not displaying or pricing correctly in GDS/Sabre." },
+      { portfolio: "Loews", project: "GDS", issueType: "JIRA", linkType: "JIRA", link: "https://jira.example.com/browse/260512-001287", summary: "Backfill GDS Line 1 channel description from negotiated rates import file." },
+      { portfolio: "Loews", project: "GDS", issueType: "Operational issue", linkType: "Slack", link: "", summary: "Capital One rates are not showing available in Capital One." }
+    ];
+
+    const upcomingMigrations = [
+      { chain: "Minor", hotels: "112 hotels", goLive: "Sep 1, 2026", channels: "SiteMinder, ORS > OCC Migration", slack: "https://oracle.enterprise.slack.com/archives/C08FRQZAFMW" },
+      { chain: "Vail Resorts", hotels: "62 hotels", goLive: "Sep-26 (6 x Pilots) / Nov-26 (remaining hotels)", channels: "Inntopia, Booking, Expedia, Trip, GDS", slack: "https://oracle.enterprise.slack.com/archives/C0AHD3Y0QAW" },
+      { chain: "Voyages", hotels: "8 hotels", goLive: "TBC", channels: "Booking, Expedia, WebBeds, HotelBeds, JTB Group, Luxury Escapes, Flight Centre, Trip.com", slack: "" },
+      { chain: "MBS", hotels: "Hotels TBC", goLive: "Apr 1, 2027", channels: "To be decided", slack: "" }
+    ];
+
+    const customerLogos = {
+      "Great Wolf": "assets/great-wolf.svg",
+      "Loews": "assets/loews.svg",
+      "Pan Pacific": "assets/pan-pacific.svg"
+    };
+
+    const state = {
+      portfolios: new Set([...new Set(channelsData.map((item) => item.portfolio))].sort()),
+      statuses: new Set([...new Set(channelsData.map((item) => item.status))].sort()),
+      search: ""
+    };
+
+    const elements = {
+      portfolioFilters: document.getElementById("portfolioFilters"),
+      statusFilters: document.getElementById("statusFilters"),
+      searchInput: document.getElementById("searchInput"),
+      completionTracker: document.getElementById("completionTracker"),
+      statusChart: document.getElementById("statusChart"),
+      channelsBody: document.getElementById("channelsBody"),
+      issuesBody: document.getElementById("issuesBody"),
+      upcomingMigrations: document.getElementById("upcomingMigrations"),
+      downloadButton: document.getElementById("downloadButton")
+    };
+
+    function uniqueValues(key) {
+      return [...new Set(channelsData.map((item) => item[key]))].sort();
+    }
+
+    function buildFilters() {
+      elements.portfolioFilters.innerHTML = uniqueValues("portfolio").map((portfolio) => checkboxMarkup("portfolio", portfolio, true)).join("");
+      elements.statusFilters.innerHTML = uniqueValues("status").map((status) => checkboxMarkup("status", status, true)).join("");
+
+      document.querySelectorAll("[data-filter-kind]").forEach((input) => {
+        input.addEventListener("change", (event) => {
+          const kind = event.target.dataset.filterKind;
+          const value = event.target.value;
+          const target = kind === "portfolio" ? state.portfolios : state.statuses;
+          if (event.target.checked) {
+            target.add(value);
+          } else {
+            target.delete(value);
+          }
+          render();
+        });
+      });
+    }
+
+    function checkboxMarkup(kind, value, checked) {
+      const safeId = `${kind}-${value}`.replace(/[^a-z0-9]+/gi, "-").toLowerCase();
+      return `
+        <label class="check-pill" for="${safeId}">
+          <input id="${safeId}" data-filter-kind="${kind}" type="checkbox" value="${escapeAttribute(value)}" ${checked ? "checked" : ""}>
+          <span>${escapeHtml(value)}</span>
+        </label>
+      `;
+    }
+
+    function filteredChannels() {
+      const term = state.search.trim().toLowerCase();
+      return channelsData.filter((item) => {
+        const matchesPortfolio = state.portfolios.has(item.portfolio);
+        const matchesStatus = state.statuses.has(item.status);
+        const haystack = `${item.channel} ${item.portfolio} ${item.notes}`.toLowerCase();
+        const matchesSearch = !term || haystack.includes(term);
+        return matchesPortfolio && matchesStatus && matchesSearch;
+      });
+    }
+
+    function render() {
+      const rows = filteredChannels();
+      renderCompletionTracker();
+      renderChart(rows);
+      renderChannelsTable(rows);
+      renderIssuesTable();
+      renderUpcomingMigrations();
+    }
+
+    function renderCompletionTracker() {
+      const customers = uniqueValues("portfolio").filter((portfolio) => state.portfolios.has(portfolio));
+
+      if (!customers.length) {
+        elements.completionTracker.innerHTML = `<div class="empty">No customers selected.</div>`;
+        return;
+      }
+
+      elements.completionTracker.innerHTML = customers.map((customer) => {
+        const customerRows = channelsData.filter((item) => item.portfolio === customer);
+        const live = customerRows.filter((item) => item.status === "LIVE").length;
+        const total = customerRows.length;
+        const percent = total ? Math.round((live / total) * 100) : 0;
+        const remaining = total - live;
+
+        return `
+          <article class="progress-card">
+            <div class="progress-top">
+              <div class="progress-brand">
+                <img class="progress-logo" src="${escapeAttribute(customerLogos[customer])}" alt="${escapeAttribute(customer)} logo">
+                <strong>${escapeHtml(customer)}</strong>
+              </div>
+              <span class="progress-percent">${percent}%</span>
+            </div>
+            <div class="progress-track" aria-label="${escapeAttribute(customer)} is ${percent}% complete">
+              <div class="progress-fill" style="width: ${percent}%"></div>
+            </div>
+            <div class="progress-meta">
+              <span>${live} of ${total} LIVE</span>
+              <span>${remaining} remaining</span>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function renderChart(rows) {
+      if (!rows.length) {
+        elements.statusChart.innerHTML = `<div class="empty">No channels match the current filters.</div>`;
+        return;
+      }
+
+      const portfolios = uniqueValues("portfolio").filter((portfolio) => state.portfolios.has(portfolio));
+      const counts = portfolios.map((portfolio) => {
+        const live = rows.filter((item) => item.portfolio === portfolio && item.status === "LIVE").length;
+        const next = rows.filter((item) => item.portfolio === portfolio && item.status === "NEW").length;
+        return { portfolio, live, next };
+      });
+      const maxCount = Math.max(1, ...counts.flatMap((item) => [item.live, item.next]));
+
+      elements.statusChart.innerHTML = `
+        <div class="chart-grid">
+          ${counts.map((item) => chartGroupMarkup(item, maxCount)).join("")}
+        </div>
+      `;
+    }
+
+    function chartGroupMarkup(item, maxCount) {
+      return `
+        <div class="portfolio-chart">
+          <div class="bar-stage" aria-label="${escapeAttribute(item.portfolio)} channel status counts">
+            ${barMarkup("live", "LIVE", item.live, maxCount)}
+            ${barMarkup("new", "NEW", item.next, maxCount)}
+          </div>
+          <div class="portfolio-label">
+            <span>${escapeHtml(item.portfolio)}</span>
+            <span>${item.live + item.next} channels</span>
+          </div>
+        </div>
+      `;
+    }
+
+    function barMarkup(className, label, value, maxCount) {
+      const height = value === 0 ? 8 : Math.max(26, Math.round((value / maxCount) * 178));
+      return `
+        <div class="bar-wrap">
+          <div class="bar ${className}" style="height: ${height}px" title="${label}: ${value}">${value}</div>
+          <div class="bar-label">${label}</div>
+        </div>
+      `;
+    }
+
+    function renderChannelsTable(rows) {
+      if (!rows.length) {
+        elements.channelsBody.innerHTML = `<tr><td class="empty" colspan="5">No channels match the current filters.</td></tr>`;
+        return;
+      }
+
+      elements.channelsBody.innerHTML = rows.map((item) => `
+        <tr>
+          <td>${escapeHtml(item.portfolio)}</td>
+          <td>${escapeHtml(item.channel)}</td>
+          <td><span class="status-badge ${item.status.toLowerCase()}">${escapeHtml(item.status)}</span></td>
+          <td>${escapeHtml(item.goLiveDate)}</td>
+          <td>${escapeHtml(item.notes)}</td>
+        </tr>
+      `).join("");
+    }
+
+    function renderIssuesTable() {
+      elements.issuesBody.innerHTML = issuesData.map((item, index) => `
+        <tr>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="portfolio">${escapeHtml(item.portfolio)}</td>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="project">${escapeHtml(item.project)}</td>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="issueType"><span class="issue-type">${escapeHtml(item.issueType)}</span></td>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="linkType">${escapeHtml(item.linkType)}</td>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="link">${linkMarkup(item)}</td>
+          <td contenteditable="true" class="editable" data-issue-index="${index}" data-issue-key="summary">${escapeHtml(item.summary)}</td>
+        </tr>
+      `).join("");
+
+      document.querySelectorAll("[data-issue-index]").forEach((cell) => {
+        cell.addEventListener("blur", (event) => {
+          const index = Number(event.currentTarget.dataset.issueIndex);
+          const key = event.currentTarget.dataset.issueKey;
+          issuesData[index][key] = event.currentTarget.innerText.trim();
+        });
+      });
+    }
+
+    function linkMarkup(item) {
+      if (!item.link) {
+        return `<span class="blank-link">No link</span>`;
+      }
+      return `<a class="link-badge" href="${escapeAttribute(item.link)}" target="_blank" rel="noreferrer">Open link</a>`;
+    }
+
+    function renderUpcomingMigrations() {
+      elements.upcomingMigrations.innerHTML = upcomingMigrations.map((item) => `
+        <article class="upcoming-card">
+          <div class="upcoming-top">
+            <h3>${escapeHtml(item.chain)}</h3>
+            <span class="hotel-count">${escapeHtml(item.hotels)}</span>
+          </div>
+          <div class="upcoming-meta">
+            <div>
+              <span class="upcoming-label">Go Live</span>
+              <strong>${escapeHtml(item.goLive)}</strong>
+            </div>
+            <div>
+              <span class="upcoming-label">Channels</span>
+              <span>${escapeHtml(item.channels)}</span>
+            </div>
+          </div>
+          ${item.slack ? `<a class="upcoming-link" href="${escapeAttribute(item.slack)}" target="_blank" rel="noreferrer">Open Slack</a>` : `<span class="blank-link">No Slack link provided</span>`}
+        </article>
+      `).join("");
+    }
+
+    function downloadChannelsCsv() {
+      const headers = ["project", "channel", "status", "go_live_date", "notes"];
+      const rows = channelsData.map((item) => [item.portfolio, item.channel, item.status, item.goLiveDate, item.notes]);
+      const csv = [headers, ...rows].map((row) => row.map(csvCell).join(",")).join("\n");
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "channel_status_data.csv";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function csvCell(value) {
+      return `"${String(value).replaceAll('"', '""')}"`;
+    }
+
+    function escapeHtml(value) {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function escapeAttribute(value) {
+      return escapeHtml(value);
+    }
+
+    elements.searchInput.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      render();
+    });
+
+    elements.downloadButton.addEventListener("click", downloadChannelsCsv);
+
+    buildFilters();
+    render();
+  </script>
+</body>
+</html>

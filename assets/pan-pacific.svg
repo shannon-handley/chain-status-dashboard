@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 210" role="img" aria-labelledby="title desc">
+  <title id="title">Pan Pacific Hotels Group</title>
+  <desc id="desc">Pan Pacific Hotels Group logo treatment.</desc>
+  <rect width="760" height="210" fill="#ffffff"/>
+  <g transform="translate(20 22)">
+    <rect x="0" y="0" width="92" height="156" rx="13" fill="none" stroke="#aa8422" stroke-width="6"/>
+    <g fill="none" stroke="#aa8422" stroke-width="6" stroke-linecap="round">
+      <path d="M46 128V35"/>
+      <path d="M46 70C32 54 20 45 13 39"/>
+      <path d="M46 58C33 38 26 26 23 17"/>
+      <path d="M46 58C58 38 65 26 69 17"/>
+      <path d="M46 70C61 54 73 45 80 39"/>
+      <path d="M46 92C30 82 19 77 10 75"/>
+      <path d="M46 92C63 82 74 77 83 75"/>
+      <path d="M46 114C29 108 18 106 10 106"/>
+      <path d="M46 114C64 108 75 106 84 106"/>
+    </g>
+    <path d="M13 136h66" stroke="#aa8422" stroke-width="8" stroke-linecap="round"/>
+  </g>
+  <g fill="#060606">
+    <text x="148" y="78" font-family="Georgia, 'Times New Roman', serif" font-size="56" letter-spacing="7">PAN PACIFIC</text>
+    <text x="148" y="136" font-family="Georgia, 'Times New Roman', serif" font-size="47" letter-spacing="5">HOTELS GROUP</text>
+    <text x="150" y="180" font-family="Georgia, 'Times New Roman', serif" font-size="23" letter-spacing="3">A Member of UOL Group</text>
+  </g>
+</svg>

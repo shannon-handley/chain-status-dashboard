@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 210" role="img" aria-labelledby="title desc">
+  <title id="title">Great Wolf Lodge</title>
+  <desc id="desc">Great Wolf Lodge logo treatment.</desc>
+  <rect width="280" height="210" fill="#ffffff"/>
+  <g transform="translate(62 8)">
+    <rect x="0" y="0" width="156" height="188" fill="#ffffff" stroke="#0c1f35" stroke-width="8"/>
+    <rect x="14" y="14" width="128" height="160" fill="#ffffff" stroke="#0c1f35" stroke-width="4"/>
+    <g font-family="Georgia, 'Times New Roman', serif" font-weight="700" font-size="31" letter-spacing="3" fill="#0c1f35" stroke="#0c1f35" stroke-width="0.8">
+      <text x="27" y="54">GREAT</text>
+      <text x="23" y="95">W</text>
+      <text x="93" y="95">LF</text>
+      <text x="27" y="136">LODGE</text>
+    </g>
+    <g fill="#b01825">
+      <ellipse cx="73" cy="83" rx="11" ry="13"/>
+      <ellipse cx="57" cy="70" rx="6" ry="9" transform="rotate(-24 57 70)"/>
+      <ellipse cx="70" cy="63" rx="6" ry="9" transform="rotate(-8 70 63)"/>
+      <ellipse cx="84" cy="65" rx="6" ry="9" transform="rotate(13 84 65)"/>
+      <ellipse cx="94" cy="76" rx="6" ry="9" transform="rotate(28 94 76)"/>
+    </g>
+  </g>
+  <circle cx="226" cy="191" r="5" fill="none" stroke="#0c1f35" stroke-width="1.4"/>
+  <text x="226" y="194" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="8" fill="#0c1f35">R</text>
+</svg>
