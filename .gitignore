@@ -4,3 +4,4 @@ __pycache__/
 server.err.log
 server.out.log
 .streamlit/credentials.toml
+*.zip
