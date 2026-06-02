@@ -733,7 +733,7 @@ issues_data = [
         "project": "Booking.com",
         "issue_type": "Operational issue",
         "link_type": "JIRA",
-        "link": "https://jira.example.com/browse/LOEWS-BOOKING-001",
+        "link": "",
         "summary": "Reservations are not consistently interfacing into OPERA; email/contact configuration and reservation notes are being investigated.",
     },
     {
@@ -741,7 +741,7 @@ issues_data = [
         "project": "GDS",
         "issue_type": "JIRA",
         "link_type": "JIRA",
-        "link": "https://jira.example.com/browse/260515-001045",
+        "link": "",
         "summary": "Free night promotions on rate codes are not displaying or pricing correctly in GDS/Sabre.",
     },
     {
@@ -749,7 +749,7 @@ issues_data = [
         "project": "GDS",
         "issue_type": "JIRA",
         "link_type": "JIRA",
-        "link": "https://jira.example.com/browse/260512-001287",
+        "link": "",
         "summary": "Backfill GDS Line 1 channel description from negotiated rates import file.",
     },
     {
