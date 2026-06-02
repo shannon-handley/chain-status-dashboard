@@ -613,7 +613,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown(
+st.html(
     """
     <div class="app-header">
       <div>
@@ -622,8 +622,7 @@ st.markdown(
       </div>
       <div class="as-of-pill">Current view: June 2, 2026</div>
     </div>
-    """,
-    unsafe_allow_html=True,
+    """
 )
 
 # ----------------------------
@@ -1029,7 +1028,7 @@ completion_rows["completion"] = (
     completion_rows["live_channels"] / completion_rows["total_channels"]
 ).fillna(0)
 
-st.markdown(render_completion_cards(completion_rows), unsafe_allow_html=True)
+st.html(render_completion_cards(completion_rows))
 
 st.divider()
 
@@ -1038,7 +1037,7 @@ st.divider()
 # ----------------------------
 
 with st.container(border=True):
-    st.markdown(section_heading("Filters", "Refine the channel view"), unsafe_allow_html=True)
+    st.html(section_heading("Filters", "Refine the channel view"))
     left, right = st.columns([1, 2])
 
     with left:
@@ -1074,10 +1073,7 @@ if search_text.strip():
 # Status visual
 # ----------------------------
 
-st.markdown(
-    render_status_chart(filtered_channels, sorted(portfolio_filter)),
-    unsafe_allow_html=True,
-)
+st.html(render_status_chart(filtered_channels, sorted(portfolio_filter)))
 
 # ----------------------------
 # Channels table
@@ -1103,7 +1099,7 @@ channels_display = channels_display.rename(
     }
 )
 
-st.markdown(render_channel_table(channels_display), unsafe_allow_html=True)
+st.html(render_channel_table(channels_display))
 
 # ----------------------------
 # Issue tracker
@@ -1121,13 +1117,13 @@ issues_display = issues_display.rename(
     }
 )
 
-st.markdown(render_issues_table(issues_display), unsafe_allow_html=True)
+st.html(render_issues_table(issues_display))
 
 # ----------------------------
 # Upcoming chain migrations
 # ----------------------------
 
-st.markdown(render_upcoming_cards(df_upcoming_chains), unsafe_allow_html=True)
+st.html(render_upcoming_cards(df_upcoming_chains))
 
 # ----------------------------
 # Optional download
