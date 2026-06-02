@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+from base64 import b64encode
+from html import escape as html_escape
 from pathlib import Path
 
 import pandas as pd
-import plotly.express as px
 import streamlit as st
 
 st.set_page_config(
@@ -12,15 +13,506 @@ st.set_page_config(
     layout="wide",
 )
 
-st.title("Chain Status Dashboard")
-st.caption("Implementation projects, channel go-live status, and active issue tracking.")
-
 BASE_DIR = Path(__file__).parent
 LOGO_PATHS = {
     "Great Wolf": BASE_DIR / "assets" / "great-wolf.svg",
     "Loews": BASE_DIR / "assets" / "loews.svg",
     "Pan Pacific": BASE_DIR / "assets" / "pan-pacific.svg",
 }
+
+
+def asset_data_uri(path: Path) -> str:
+    if not path.exists():
+        return ""
+    encoded = b64encode(path.read_bytes()).decode("ascii")
+    return f"data:image/svg+xml;base64,{encoded}"
+
+
+LOGO_URIS = {name: asset_data_uri(path) for name, path in LOGO_PATHS.items()}
+
+# ----------------------------
+# Visual system
+# ----------------------------
+
+st.markdown(
+    """
+    <style>
+        /* === Design tokens: adjust these to tune the dashboard palette quickly. === */
+        :root {
+            --app-bg: #f6f7f9;
+            --card-bg: #ffffff;
+            --text-main: #172033;
+            --text-muted: #657184;
+            --border: #d9e0ea;
+            --border-soft: #e8edf5;
+            --accent: #2f65d6;
+            --live: #16835b;
+            --live-soft: #dff4eb;
+            --new: #b36a0a;
+            --new-soft: #fff1d6;
+            --issue: #b42318;
+            --issue-soft: #ffe5e1;
+            --shadow: 0 8px 24px rgba(30, 41, 59, 0.08);
+            --radius: 8px;
+            --font-stack: "Segoe UI", Arial, sans-serif;
+        }
+
+        /* === Streamlit shell overrides. === */
+        html, body, [class*="css"] {
+            font-family: var(--font-stack);
+        }
+
+        .stApp {
+            background: var(--app-bg);
+            color: var(--text-main);
+        }
+
+        .block-container {
+            max-width: 1440px;
+            padding: 1.35rem 2rem 2.5rem;
+        }
+
+        header[data-testid="stHeader"] {
+            background: transparent;
+        }
+
+        div[data-testid="stToolbar"] {
+            display: none;
+        }
+
+        h1, h2, h3, p {
+            letter-spacing: 0;
+        }
+
+        hr {
+            margin: 1rem 0;
+            border-color: var(--border);
+        }
+
+        /* === Page header and card primitives. === */
+        .app-header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 0 0 1rem;
+        }
+
+        .app-title {
+            margin: 0;
+            color: var(--text-main);
+            font-size: clamp(2rem, 4vw, 2.75rem);
+            font-weight: 750;
+            line-height: 1.05;
+        }
+
+        .app-caption {
+            margin: 0.45rem 0 0;
+            color: var(--text-muted);
+            font-size: 0.98rem;
+        }
+
+        .as-of-pill {
+            flex: 0 0 auto;
+            color: #384456;
+            background: #eef2f7;
+            border: 1px solid var(--border);
+            border-radius: 999px;
+            padding: 0.45rem 0.75rem;
+            font-size: 0.82rem;
+            white-space: nowrap;
+        }
+
+        .section-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin: 1rem 0;
+            overflow: hidden;
+        }
+
+        .section-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1rem 1rem 0.7rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 1.12rem;
+            font-weight: 750;
+        }
+
+        .section-heading span {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 650;
+        }
+
+        /* === Completion cards. === */
+        .completion-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(230px, 1fr));
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .completion-card {
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            background: #fbfcfe;
+            padding: 0.9rem;
+        }
+
+        .completion-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .completion-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            min-width: 0;
+        }
+
+        .completion-logo {
+            width: 82px;
+            height: 42px;
+            object-fit: contain;
+            flex: 0 0 auto;
+            border-radius: 4px;
+            background: #ffffff;
+        }
+
+        .completion-name {
+            color: var(--text-main);
+            font-weight: 760;
+        }
+
+        .completion-percent {
+            color: var(--accent);
+            font-size: 1.42rem;
+            font-weight: 800;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 12px;
+            overflow: hidden;
+            border-radius: 999px;
+            background: #e8edf5;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, var(--live), #36a87d);
+        }
+
+        .completion-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-top: 0.65rem;
+            color: #506078;
+            font-size: 0.82rem;
+            font-weight: 680;
+        }
+
+        /* === HTML status chart, matched to the local Codex dashboard. === */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(220px, 1fr));
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .portfolio-chart {
+            display: grid;
+            grid-template-rows: 1fr auto;
+            min-height: 252px;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            padding: 0.75rem 0.75rem 0.65rem;
+            background: #fbfcfe;
+        }
+
+        .bar-stage {
+            display: flex;
+            align-items: end;
+            justify-content: center;
+            gap: 1rem;
+            min-height: 188px;
+            padding: 0.75rem 0.6rem 0;
+            border-bottom: 1px solid var(--border);
+            background:
+                linear-gradient(to top, transparent 48px, rgba(217, 224, 234, 0.55) 49px, transparent 50px),
+                linear-gradient(to top, transparent 96px, rgba(217, 224, 234, 0.55) 97px, transparent 98px),
+                linear-gradient(to top, transparent 144px, rgba(217, 224, 234, 0.55) 145px, transparent 146px);
+        }
+
+        .bar-wrap {
+            display: grid;
+            justify-items: center;
+            gap: 0.45rem;
+            min-width: 82px;
+        }
+
+        .bar {
+            width: 64px;
+            min-height: 8px;
+            border-radius: 6px 6px 0 0;
+            display: flex;
+            align-items: start;
+            justify-content: center;
+            color: #ffffff;
+            font-weight: 780;
+            padding-top: 0.4rem;
+        }
+
+        .bar.live {
+            background: var(--live);
+        }
+
+        .bar.new {
+            background: var(--new);
+        }
+
+        .bar-label {
+            color: var(--text-muted);
+            font-size: 0.74rem;
+            font-weight: 760;
+            text-transform: uppercase;
+        }
+
+        .portfolio-label {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0.7rem 0.25rem 0;
+            font-weight: 760;
+        }
+
+        /* === Native Streamlit widget polish. === */
+        div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stMultiSelect"]),
+        div[data-testid="stVerticalBlock"] > div:has(> div[data-testid="stTextInput"]) {
+            margin-bottom: 0.25rem;
+        }
+
+        label, div[data-testid="stWidgetLabel"] p {
+            color: var(--text-muted) !important;
+            font-size: 0.78rem !important;
+            font-weight: 750 !important;
+            text-transform: uppercase;
+        }
+
+        div[data-baseweb="select"] > div,
+        div[data-testid="stTextInput"] input {
+            background: #ffffff;
+            border-color: var(--border) !important;
+            border-radius: 7px !important;
+            box-shadow: none !important;
+        }
+
+        .stButton > button,
+        div[data-testid="stDownloadButton"] button {
+            min-height: 2.35rem;
+            border: 1px solid #244fbd;
+            border-radius: 7px;
+            color: #ffffff;
+            background: var(--accent);
+            font-weight: 750;
+            box-shadow: none;
+        }
+
+        .stButton > button:hover,
+        div[data-testid="stDownloadButton"] button:hover {
+            border-color: #244fbd;
+            color: #ffffff;
+            background: #2456bd;
+        }
+
+        /* === Status badges, tables, and upcoming migration cards. === */
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+        }
+
+        .styled-table {
+            width: 100%;
+            min-width: 920px;
+            border-collapse: collapse;
+            font-size: 0.88rem;
+        }
+
+        .styled-table th,
+        .styled-table td {
+            text-align: left;
+            vertical-align: top;
+            border-bottom: 1px solid var(--border);
+            padding: 0.62rem 0.75rem;
+        }
+
+        .styled-table th {
+            background: #f8fafc;
+            color: #475569;
+            font-size: 0.74rem;
+            font-weight: 780;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .styled-table tr:hover td {
+            background: #f9fbff;
+        }
+
+        .status-badge,
+        .link-badge,
+        .issue-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            padding: 0.2rem 0.55rem;
+            font-size: 0.75rem;
+            font-weight: 780;
+            line-height: 1.35;
+            white-space: nowrap;
+        }
+
+        .status-live {
+            color: var(--live);
+            background: var(--live-soft);
+        }
+
+        .status-new {
+            color: var(--new);
+            background: var(--new-soft);
+        }
+
+        .issue-badge {
+            color: var(--issue);
+            background: var(--issue-soft);
+        }
+
+        .link-badge {
+            color: #2c4a8a;
+            background: #e7eefb;
+            text-decoration: none;
+        }
+
+        .muted-text {
+            color: var(--text-muted);
+        }
+
+        .upcoming-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(210px, 1fr));
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .upcoming-card {
+            display: grid;
+            gap: 0.75rem;
+            border: 1px solid var(--border-soft);
+            border-radius: var(--radius);
+            background: #fbfcfe;
+            padding: 0.9rem;
+        }
+
+        .upcoming-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 0.75rem;
+        }
+
+        .upcoming-top h3 {
+            margin: 0;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 780;
+            line-height: 1.2;
+        }
+
+        .hotel-count {
+            flex: 0 0 auto;
+            border-radius: 999px;
+            padding: 0.22rem 0.55rem;
+            color: #26415d;
+            background: #e9f0f8;
+            font-size: 0.72rem;
+            font-weight: 780;
+            white-space: nowrap;
+        }
+
+        .upcoming-label {
+            display: block;
+            color: var(--text-muted);
+            font-size: 0.68rem;
+            font-weight: 780;
+            text-transform: uppercase;
+        }
+
+        .upcoming-value {
+            color: #334155;
+            font-size: 0.86rem;
+        }
+
+        .plot-card {
+            padding: 0.35rem 0.85rem 0.85rem;
+        }
+
+        @media (max-width: 980px) {
+            .block-container {
+                padding-left: 0.85rem;
+                padding-right: 0.85rem;
+            }
+
+            .app-header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .completion-grid,
+            .chart-grid,
+            .upcoming-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .as-of-pill {
+                white-space: normal;
+            }
+        }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown(
+    """
+    <div class="app-header">
+      <div>
+        <h1 class="app-title">Chain Status Dashboard</h1>
+        <p class="app-caption">Implementation projects, channel go-live status, and active issue tracking.</p>
+      </div>
+      <div class="as-of-pill">Current view: June 2, 2026</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 # ----------------------------
 # Source data
@@ -193,11 +685,226 @@ df_channels["go_live_date"] = pd.to_datetime(
 ).dt.date
 df_channels["status"] = df_channels["status"].str.upper()
 
+
+def safe_text(value: object) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, float) and pd.isna(value):
+        return ""
+    return html_escape(str(value), quote=True)
+
+
+def status_badge(status: str) -> str:
+    status_value = safe_text(status).upper()
+    status_class = "status-live" if status_value == "LIVE" else "status-new"
+    return f'<span class="status-badge {status_class}">{status_value}</span>'
+
+
+def section_heading(title: str, detail: str = "") -> str:
+    detail_html = f"<span>{safe_text(detail)}</span>" if detail else ""
+    return (
+        '<div class="section-heading">'
+        f"<h2>{safe_text(title)}</h2>"
+        f"{detail_html}"
+        "</div>"
+    )
+
+
+def render_completion_cards(rows: pd.DataFrame) -> str:
+    cards = []
+    for row in rows.itertuples(index=False):
+        percent = int(round(float(row.completion) * 100))
+        remaining = int(row.total_channels - row.live_channels)
+        logo_uri = LOGO_URIS.get(row.portfolio, "")
+        logo_html = (
+            f'<img class="completion-logo" src="{safe_text(logo_uri)}" '
+            f'alt="{safe_text(row.portfolio)} logo">'
+            if logo_uri
+            else ""
+        )
+        cards.append(
+            f"""
+            <article class="completion-card">
+              <div class="completion-top">
+                <div class="completion-brand">
+                  {logo_html}
+                  <span class="completion-name">{safe_text(row.portfolio)}</span>
+                </div>
+                <span class="completion-percent">{percent}%</span>
+              </div>
+              <div class="progress-track" aria-label="{safe_text(row.portfolio)} is {percent}% complete">
+                <div class="progress-fill" style="width: {percent}%"></div>
+              </div>
+              <div class="completion-meta">
+                <span>{int(row.live_channels)} of {int(row.total_channels)} LIVE</span>
+                <span>{remaining} remaining</span>
+              </div>
+            </article>
+            """
+        )
+
+    return (
+        '<section class="section-card">'
+        + section_heading("Project Completion")
+        + '<div class="completion-grid">'
+        + "".join(cards)
+        + "</div></section>"
+    )
+
+
+def bar_markup(class_name: str, label: str, value: int, max_count: int) -> str:
+    height = 8 if value == 0 else max(26, round((value / max_count) * 178))
+    return (
+        '<div class="bar-wrap">'
+        f'<div class="bar {class_name}" style="height: {height}px" title="{safe_text(label)}: {value}">{value}</div>'
+        f'<div class="bar-label">{safe_text(label)}</div>'
+        "</div>"
+    )
+
+
+def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
+    if rows.empty:
+        chart_body = '<p class="muted-text" style="padding: 1rem;">No channels match the current filters.</p>'
+    else:
+        counts = []
+        for customer in customers:
+            customer_rows = rows[rows["portfolio"] == customer]
+            live = int((customer_rows["status"] == "LIVE").sum())
+            new = int((customer_rows["status"] == "NEW").sum())
+            counts.append({"portfolio": customer, "live": live, "new": new})
+
+        max_count = max(1, max(max(item["live"], item["new"]) for item in counts))
+        chart_cards = []
+        for item in counts:
+            total = item["live"] + item["new"]
+            chart_cards.append(
+                f"""
+                <article class="portfolio-chart">
+                  <div class="bar-stage" aria-label="{safe_text(item["portfolio"])} channel status counts">
+                    {bar_markup("live", "LIVE", item["live"], max_count)}
+                    {bar_markup("new", "NEW", item["new"], max_count)}
+                  </div>
+                  <div class="portfolio-label">
+                    <span>{safe_text(item["portfolio"])}</span>
+                    <span>{total} channels</span>
+                  </div>
+                </article>
+                """
+            )
+        chart_body = '<div class="chart-grid">' + "".join(chart_cards) + "</div>"
+
+    return (
+        '<section class="section-card">'
+        + section_heading("Channels by Customer and Status")
+        + chart_body
+        + "</section>"
+    )
+
+
+def render_channel_table(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<tr><td colspan="5" class="muted-text">No channels match the current filters.</td></tr>'
+    else:
+        row_html = []
+        for _, row in rows.iterrows():
+            row_html.append(
+                f"""
+            <tr>
+              <td>{safe_text(row["Project"])}</td>
+              <td>{safe_text(row["Channel"])}</td>
+              <td>{status_badge(row["Status"])}</td>
+              <td>{safe_text(row["Live / Proposed Go-Live"])}</td>
+              <td>{safe_text(row["Notes"])}</td>
+            </tr>
+            """
+            )
+        body = "".join(row_html)
+
+    return (
+        '<section class="section-card">'
+        + section_heading("Channel Status", f"{len(rows)} visible channels")
+        + '<div class="table-wrap"><table class="styled-table">'
+        "<thead><tr>"
+        "<th>Project</th><th>Channel</th><th>Status</th><th>Live / Proposed Go-Live</th><th>Notes</th>"
+        "</tr></thead><tbody>"
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+def render_issues_table(rows: pd.DataFrame) -> str:
+    row_html = []
+    for _, row in rows.iterrows():
+        row_html.append(
+            f"""
+        <tr>
+          <td>{safe_text(row["Customer"])}</td>
+          <td>{safe_text(row["Project"])}</td>
+          <td><span class="issue-badge">{safe_text(row["Issue Type"])}</span></td>
+          <td>{safe_text(row["Link Type"])}</td>
+          <td>{render_link(row["Slack / JIRA Link"])}</td>
+          <td>{safe_text(row["Summary"])}</td>
+        </tr>
+        """
+        )
+    body = "".join(row_html)
+    return (
+        '<section class="section-card">'
+        + section_heading("Issue Tracker", f"{len(rows)} active issues")
+        + '<div class="table-wrap"><table class="styled-table">'
+        "<thead><tr>"
+        "<th>Customer</th><th>Project</th><th>Issue Type</th><th>Link Type</th><th>Slack / JIRA Link</th><th>Summary</th>"
+        "</tr></thead><tbody>"
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+def render_link(url: object, label: str = "Open link") -> str:
+    url_text = safe_text(url)
+    if not url_text:
+        return '<span class="muted-text">No link</span>'
+    return (
+        f'<a class="link-badge" href="{url_text}" target="_blank" '
+        f'rel="noreferrer">{safe_text(label)}</a>'
+    )
+
+
+def render_upcoming_cards(rows: pd.DataFrame) -> str:
+    cards = []
+    for row in rows.itertuples(index=False):
+        cards.append(
+            f"""
+            <article class="upcoming-card">
+              <div class="upcoming-top">
+                <h3>{safe_text(row.chain)}</h3>
+                <span class="hotel-count">{safe_text(row.hotels)}</span>
+              </div>
+              <div>
+                <span class="upcoming-label">Go Live</span>
+                <strong class="upcoming-value">{safe_text(row.go_live)}</strong>
+              </div>
+              <div>
+                <span class="upcoming-label">Channels</span>
+                <span class="upcoming-value">{safe_text(row.channels)}</span>
+              </div>
+              {render_link(row.slack, "Open Slack")}
+            </article>
+            """
+        )
+    return (
+        '<section class="section-card">'
+        + section_heading("Upcoming Chain Migrations")
+        + '<div class="upcoming-grid">'
+        + "".join(cards)
+        + "</div></section>"
+    )
+
+
 # ----------------------------
 # Project completion tracker
 # ----------------------------
 
-st.subheader("Project Completion")
 completion_rows = (
     df_channels.groupby("portfolio", as_index=False)
     .agg(
@@ -210,19 +917,7 @@ completion_rows["completion"] = (
     completion_rows["live_channels"] / completion_rows["total_channels"]
 ).fillna(0)
 
-completion_cards = st.columns(len(completion_rows))
-for card, row in zip(completion_cards, completion_rows.itertuples(index=False)):
-    with card:
-        logo_path = LOGO_PATHS.get(row.portfolio)
-        if logo_path and logo_path.exists():
-            st.image(str(logo_path), width=90)
-        percent = float(row.completion)
-        st.markdown(f"**{row.portfolio}**")
-        st.progress(percent, text=f"{percent:.0%} complete")
-        st.caption(
-            f"{row.live_channels} of {row.total_channels} LIVE | "
-            f"{row.total_channels - row.live_channels} remaining"
-        )
+st.markdown(render_completion_cards(completion_rows), unsafe_allow_html=True)
 
 st.divider()
 
@@ -230,6 +925,7 @@ st.divider()
 # Filters
 # ----------------------------
 
+st.markdown(section_heading("Filters", "Refine the channel view"), unsafe_allow_html=True)
 left, right = st.columns([1, 2])
 
 with left:
@@ -262,38 +958,18 @@ if search_text.strip():
     filtered_channels = filtered_channels[mask]
 
 # ----------------------------
-# Top visual
+# Status visual
 # ----------------------------
 
-status_counts = (
-    filtered_channels.groupby(["portfolio", "status"], as_index=False)
-    .size()
-    .rename(columns={"size": "count"})
+st.markdown(
+    render_status_chart(filtered_channels, sorted(portfolio_filter)),
+    unsafe_allow_html=True,
 )
-
-fig = px.bar(
-    status_counts,
-    x="portfolio",
-    y="count",
-    color="status",
-    barmode="group",
-    text="count",
-    title="Channels by Customer and Status",
-)
-fig.update_layout(
-    xaxis_title="Customer",
-    yaxis_title="Channel Count",
-    legend_title_text="Status",
-    margin=dict(l=20, r=20, t=60, b=20),
-)
-
-st.plotly_chart(fig, use_container_width=True)
 
 # ----------------------------
 # Channels table
 # ----------------------------
 
-st.subheader("Channel Status")
 channels_display = filtered_channels.copy()
 channels_display["project"] = channels_display["portfolio"]
 channels_display["go_live_date"] = channels_display["go_live_date"].apply(
@@ -314,24 +990,11 @@ channels_display = channels_display.rename(
     }
 )
 
-st.dataframe(
-    channels_display,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        "Project": st.column_config.TextColumn(width="large"),
-        "Channel": st.column_config.TextColumn(width="large"),
-        "Status": st.column_config.TextColumn(width="small"),
-        "Live / Proposed Go-Live": st.column_config.TextColumn(width="medium"),
-        "Notes": st.column_config.TextColumn(width="large"),
-    },
-)
+st.markdown(render_channel_table(channels_display), unsafe_allow_html=True)
 
 # ----------------------------
 # Issue tracker
 # ----------------------------
-
-st.subheader("Issue Tracker")
 
 issues_display = df_issues.copy()
 issues_display = issues_display.rename(
@@ -345,57 +1008,13 @@ issues_display = issues_display.rename(
     }
 )
 
-st.data_editor(
-    issues_display,
-    use_container_width=True,
-    hide_index=True,
-    num_rows="dynamic",
-    column_config={
-        "Customer": st.column_config.SelectboxColumn(
-            "Customer",
-            options=["Great Wolf", "Loews", "Pan Pacific"],
-        ),
-        "Project": st.column_config.TextColumn(width="large"),
-        "Issue Type": st.column_config.TextColumn(width="medium"),
-        "Link Type": st.column_config.SelectboxColumn(
-            "Link Type",
-            options=["Slack", "JIRA", "Other"],
-        ),
-        "Slack / JIRA Link": st.column_config.LinkColumn(
-            "Slack / JIRA Link",
-            display_text="Open link",
-        ),
-        "Summary": st.column_config.TextColumn(width="large"),
-    },
-)
+st.markdown(render_issues_table(issues_display), unsafe_allow_html=True)
 
 # ----------------------------
 # Upcoming chain migrations
 # ----------------------------
 
-st.subheader("Upcoming Chain Migrations")
-upcoming_display = df_upcoming_chains.rename(
-    columns={
-        "chain": "Chain",
-        "hotels": "Hotels",
-        "go_live": "Go Live",
-        "channels": "Channels",
-        "slack": "Slack",
-    }
-)
-
-st.dataframe(
-    upcoming_display,
-    use_container_width=True,
-    hide_index=True,
-    column_config={
-        "Chain": st.column_config.TextColumn(width="medium"),
-        "Hotels": st.column_config.TextColumn(width="small"),
-        "Go Live": st.column_config.TextColumn(width="medium"),
-        "Channels": st.column_config.TextColumn(width="large"),
-        "Slack": st.column_config.LinkColumn("Slack", display_text="Open Slack"),
-    },
-)
+st.markdown(render_upcoming_cards(df_upcoming_chains), unsafe_allow_html=True)
 
 # ----------------------------
 # Optional download
