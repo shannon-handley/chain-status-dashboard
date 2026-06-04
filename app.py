@@ -41,6 +41,27 @@ CURRENT_VIEW_LABEL = (
     f"{CURRENT_VIEW_DATE.strftime('%B')} {CURRENT_VIEW_DATE.day}, {CURRENT_VIEW_DATE.year}"
 )
 STATUS_ORDER = ["LIVE", "IN PROGRESS", "NEW"]
+STATUS_SYMBOLS = {"LIVE": "✓", "IN PROGRESS": "◆", "NEW": "▲"}
+SEVERITY_SYMBOLS = {"Critical": "!", "High": "▲", "Medium": "●", "Low": "•", "None": "○"}
+HEALTH_SYMBOLS = {
+    "Healthy": "✓",
+    "Attention Needed": "●",
+    "At Risk": "▲",
+    "Escalated": "!",
+}
+SECTION_ICONS = {
+    "Project Completion": "▣",
+    "Channels by Customer and Status": "▥",
+    "Channel Status": "☷",
+    "Upcoming Chain Migrations": "↗",
+    "Customer Health": "◎",
+    "Ownership Matrix": "◇",
+    "Open Issues & Blockers": "!",
+    "Executive Escalations": "▲",
+    "Risk Feed": "◌",
+    "Escalation Rules": "≡",
+    "Command Filters": "⌕",
+}
 
 # ----------------------------
 # Visual system
@@ -78,6 +99,9 @@ st.markdown(
             --new-soft: rgba(246, 180, 81, 0.15);
             --issue: #ff6b81;
             --issue-soft: rgba(255, 107, 129, 0.14);
+            --critical: #ef4444;
+            --warning: #f97316;
+            --success: #22c55e;
             --shadow: 0 18px 60px rgba(0, 0, 0, 0.35);
             --inner-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
             --radius: 12px;
@@ -159,6 +183,7 @@ st.markdown(
 
         .section-card {
             background:
+                radial-gradient(circle at top left, rgba(124, 92, 255, 0.08), transparent 18rem),
                 linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
                 var(--card-bg);
             border: 1px solid var(--border);
@@ -211,16 +236,33 @@ st.markdown(
         }
 
         .section-heading h2 {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.48rem;
             margin: 0;
             color: var(--text-main);
             font-size: 1.12rem;
             font-weight: 760;
         }
 
-        .section-heading span {
+        .section-heading .section-detail {
             color: var(--text-muted);
             font-size: 0.82rem;
             font-weight: 680;
+        }
+
+        .section-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.65rem;
+            height: 1.65rem;
+            border-radius: 999px;
+            color: #d7efff;
+            background: linear-gradient(135deg, rgba(124, 92, 255, 0.32), rgba(56, 189, 248, 0.24));
+            border: 1px solid rgba(148, 163, 184, 0.22);
+            font-size: 0.82rem;
+            box-shadow: 0 10px 24px rgba(56, 189, 248, 0.12);
         }
 
         /* === Completion cards. === */
@@ -234,9 +276,12 @@ st.markdown(
         .completion-card {
             border: 1px solid var(--paper-border);
             border-radius: var(--radius);
-            background: var(--paper-bg);
+            background:
+                radial-gradient(circle at top right, rgba(124, 92, 255, 0.10), transparent 12rem),
+                linear-gradient(180deg, #ffffff, #f9fbff);
             padding: 0.9rem;
             box-shadow: 0 14px 30px rgba(6, 14, 28, 0.20);
+            border-top: 4px solid var(--accent-2);
         }
 
         .completion-top {
@@ -271,9 +316,28 @@ st.markdown(
         }
 
         .completion-percent {
-            color: var(--accent);
+            color: #6d4eff;
             font-size: 1.42rem;
             font-weight: 800;
+        }
+
+        .completion-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.28rem;
+            margin-top: -0.15rem;
+            color: var(--paper-muted);
+            font-size: 0.74rem;
+            font-weight: 780;
+            text-transform: uppercase;
+        }
+
+        .completion-status .status-dot {
+            width: 0.5rem;
+            height: 0.5rem;
+            border-radius: 999px;
+            background: var(--live);
+            box-shadow: 0 0 0 4px rgba(61, 220, 151, 0.16);
         }
 
         .progress-track {
@@ -302,6 +366,12 @@ st.markdown(
             font-weight: 680;
         }
 
+        .completion-meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+
         /* === HTML status chart, matched to the local Codex dashboard. === */
         .chart-grid {
             display: grid;
@@ -317,7 +387,9 @@ st.markdown(
             border: 1px solid var(--paper-border);
             border-radius: var(--radius);
             padding: 0.75rem 0.75rem 0.65rem;
-            background: var(--paper-bg);
+            background:
+                radial-gradient(circle at top, rgba(56, 189, 248, 0.07), transparent 13rem),
+                var(--paper-bg);
             box-shadow: 0 14px 30px rgba(6, 14, 28, 0.20);
         }
 
@@ -355,17 +427,17 @@ st.markdown(
         }
 
         .bar.live {
-            background: var(--live);
+            background: linear-gradient(180deg, #4ade80, var(--live));
             box-shadow: 0 0 18px rgba(61, 220, 151, 0.20);
         }
 
         .bar.in-progress {
-            background: var(--progress);
+            background: linear-gradient(180deg, #9b87ff, var(--progress));
             box-shadow: 0 0 18px rgba(124, 92, 255, 0.20);
         }
 
         .bar.new {
-            background: var(--new);
+            background: linear-gradient(180deg, #ffd072, var(--new));
             box-shadow: 0 0 18px rgba(246, 180, 81, 0.18);
         }
 
@@ -388,6 +460,16 @@ st.markdown(
 
         .portfolio-label span:last-child {
             color: var(--paper-muted);
+        }
+
+        .portfolio-footnote {
+            display: flex;
+            gap: 0.4rem;
+            align-items: center;
+            color: var(--paper-muted);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.1rem 0.25rem 0;
         }
 
         /* === Native Streamlit widget polish. === */
@@ -588,6 +670,15 @@ st.markdown(
             font-weight: 780;
             line-height: 1.35;
             white-space: nowrap;
+        }
+
+        .badge-symbol {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 0.28rem;
+            font-size: 0.72rem;
+            line-height: 1;
         }
 
         .status-live {
@@ -800,6 +891,7 @@ st.markdown(
             border: 1px solid var(--border-soft);
             border-radius: var(--radius);
             background:
+                radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 10rem),
                 linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.014)),
                 var(--card-bg-elevated);
             padding: 0.9rem;
@@ -819,6 +911,26 @@ st.markdown(
             font-size: 1rem;
             font-weight: 780;
             line-height: 1.2;
+        }
+
+        .upcoming-name {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+        }
+
+        .upcoming-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 1.6rem;
+            height: 1.6rem;
+            border-radius: 8px;
+            color: #d7efff;
+            background: rgba(56, 189, 248, 0.14);
+            border: 1px solid rgba(56, 189, 248, 0.22);
+            font-size: 0.78rem;
+            font-weight: 820;
         }
 
         .hotel-count {
@@ -1186,16 +1298,174 @@ def status_badge(status: str) -> str:
         "IN PROGRESS": "status-in-progress",
         "NEW": "status-new",
     }.get(status_value, "status-new")
-    return f'<span class="status-badge {status_class}">{status_value}</span>'
+    symbol = STATUS_SYMBOLS.get(status_value, "•")
+    return (
+        f'<span class="status-badge {status_class}">'
+        f'<span class="badge-symbol">{safe_text(symbol)}</span>{status_value}</span>'
+    )
 
 
 def section_heading(title: str, detail: str = "") -> str:
-    detail_html = f"<span>{safe_text(detail)}</span>" if detail else ""
+    icon = SECTION_ICONS.get(title, "•")
+    detail_html = f'<span class="section-detail">{safe_text(detail)}</span>' if detail else ""
     return (
         '<div class="section-heading">'
-        f"<h2>{safe_text(title)}</h2>"
+        f'<h2><span class="section-icon">{safe_text(icon)}</span>{safe_text(title)}</h2>'
         f"{detail_html}"
         "</div>"
+    )
+
+
+def build_completion_rows(channels: pd.DataFrame) -> pd.DataFrame:
+    if channels.empty:
+        return pd.DataFrame(
+            columns=[
+                "portfolio",
+                "total_channels",
+                "live_channels",
+                "in_progress_channels",
+                "new_channels",
+                "completion",
+            ]
+        )
+
+    rows = []
+    for customer in sorted(channels["portfolio"].unique()):
+        customer_rows = channels[channels["portfolio"] == customer]
+        total = int(len(customer_rows))
+        live = int((customer_rows["status"] == "LIVE").sum())
+        in_progress = int((customer_rows["status"] == "IN PROGRESS").sum())
+        new = int((customer_rows["status"] == "NEW").sum())
+        rows.append(
+            {
+                "portfolio": customer,
+                "total_channels": total,
+                "live_channels": live,
+                "in_progress_channels": in_progress,
+                "new_channels": new,
+                "completion": live / total if total else 0,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
+def render_completion_cards(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
+    else:
+        cards = []
+        for row in rows.itertuples(index=False):
+            percent = int(round(float(row.completion) * 100))
+            remaining = int(row.total_channels - row.live_channels)
+            logo_uri = LOGO_URIS.get(row.portfolio, "")
+            if remaining == 0:
+                status_label = "Complete"
+            elif int(row.in_progress_channels) > 0:
+                status_label = "In progress"
+            else:
+                status_label = "Action needed"
+            logo_html = (
+                f'<img class="completion-logo" src="{safe_text(logo_uri)}" '
+                f'alt="{safe_text(row.portfolio)} logo">'
+                if logo_uri
+                else ""
+            )
+            cards.append(
+                f"""
+                <article class="completion-card">
+                  <div class="completion-top">
+                    <div class="completion-brand">
+                      {logo_html}
+                      <div>
+                        <div class="completion-name">{safe_text(row.portfolio)}</div>
+                        <div class="completion-status"><span class="status-dot"></span>{safe_text(status_label)}</div>
+                      </div>
+                    </div>
+                    <span class="completion-percent">{percent}%</span>
+                  </div>
+                  <div class="progress-track" aria-label="{safe_text(row.portfolio)} is {percent}% live">
+                    <div class="progress-fill" style="width: {percent}%"></div>
+                  </div>
+                  <div class="completion-meta">
+                    <span>{safe_text(STATUS_SYMBOLS["LIVE"])} {int(row.live_channels)} of {int(row.total_channels)} LIVE</span>
+                    <span>{remaining} remaining</span>
+                  </div>
+                </article>
+                """
+            )
+        body = '<div class="completion-grid">' + "".join(cards) + "</div>"
+
+    return (
+        '<section class="section-card">'
+        + section_heading("Project Completion", "Live channel progress by customer")
+        + body
+        + "</section>"
+    )
+
+
+def bar_markup(class_name: str, label: str, value: int, max_count: int) -> str:
+    height = 8 if value == 0 else max(26, round((value / max_count) * 178))
+    symbol = STATUS_SYMBOLS.get(label, "•")
+    return (
+        '<div class="bar-wrap">'
+        f'<div class="bar {class_name}" style="height: {height}px" title="{safe_text(label)}: {value}">{value}</div>'
+        f'<div class="bar-label">{safe_text(symbol)} {safe_text(label)}</div>'
+        "</div>"
+    )
+
+
+def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
+    if rows.empty or not customers:
+        chart_body = '<p class="muted-text" style="padding: 1rem;">No channels match the current filters.</p>'
+    else:
+        active_statuses = [status for status in STATUS_ORDER if status in set(rows["status"])]
+        counts = []
+        for customer in customers:
+            customer_rows = rows[rows["portfolio"] == customer]
+            status_counts = {
+                status: int((customer_rows["status"] == status).sum())
+                for status in active_statuses
+            }
+            counts.append({"portfolio": customer, **status_counts})
+
+        if not active_statuses:
+            chart_body = '<p class="muted-text" style="padding: 1rem;">No channel statuses match the active filters.</p>'
+        else:
+            max_count = max(
+                1,
+                max(max(item[status] for status in active_statuses) for item in counts),
+            )
+            chart_cards = []
+            for item in counts:
+                total = sum(item[status] for status in active_statuses)
+                bars = "".join(
+                    bar_markup(status.lower().replace(" ", "-"), status, item[status], max_count)
+                    for status in active_statuses
+                    if item[status] > 0
+                )
+                if not bars:
+                    bars = '<span class="muted-text">No matching channels</span>'
+                chart_cards.append(
+                    f"""
+                    <article class="portfolio-chart">
+                      <div class="bar-stage" aria-label="{safe_text(item["portfolio"])} channel status counts">
+                        {bars}
+                      </div>
+                      <div class="portfolio-label">
+                        <span>{safe_text(item["portfolio"])}</span>
+                        <span>{total} channels</span>
+                      </div>
+                      <div class="portfolio-footnote"><span>Filtered migration status</span></div>
+                    </article>
+                    """
+                )
+            chart_body = '<div class="chart-grid">' + "".join(chart_cards) + "</div>"
+
+    return (
+        '<section class="section-card">'
+        + section_heading("Channels by Customer and Status", "LIVE, IN PROGRESS, and NEW channels")
+        + chart_body
+        + "</section>"
     )
 
 
@@ -1220,7 +1490,7 @@ def render_channel_table(rows: pd.DataFrame) -> str:
 
     return (
         '<section class="section-card">'
-        + section_heading("Detailed Channel Table", f"{len(rows)} visible channels")
+        + section_heading("Channel Status", f"{len(rows)} visible channels")
         + '<div class="table-wrap"><table class="styled-table">'
         "<thead><tr>"
         "<th>Project</th><th>Channel</th><th>Status</th><th>Live / Proposed Go-Live</th><th>Notes</th>"
@@ -1243,11 +1513,12 @@ def render_link(url: object, label: str = "Open link") -> str:
 def render_upcoming_cards(rows: pd.DataFrame) -> str:
     cards = []
     for row in rows.itertuples(index=False):
+        icon = safe_text(str(row.chain)[:1].upper())
         cards.append(
             f"""
             <article class="upcoming-card">
               <div class="upcoming-top">
-                <h3>{safe_text(row.chain)}</h3>
+                <h3 class="upcoming-name"><span class="upcoming-icon">{icon}</span>{safe_text(row.chain)}</h3>
                 <span class="hotel-count">{safe_text(row.hotels)}</span>
               </div>
               <div>
@@ -1578,13 +1849,21 @@ def aggregate_escalations(records: pd.DataFrame) -> pd.DataFrame:
 def severity_badge(severity: object) -> str:
     value = safe_text(severity or "None")
     css = f"severity-{value.lower()}"
-    return f'<span class="status-badge {css}">{value}</span>'
+    symbol = SEVERITY_SYMBOLS.get(value, "•")
+    return (
+        f'<span class="status-badge {css}">'
+        f'<span class="badge-symbol">{safe_text(symbol)}</span>{value}</span>'
+    )
 
 
 def health_badge(health: object) -> str:
     value = safe_text(health)
     css = f"health-{value.lower().replace(' ', '-')}"
-    return f'<span class="status-badge {css}">{value}</span>'
+    symbol = HEALTH_SYMBOLS.get(value, "•")
+    return (
+        f'<span class="status-badge {css}">'
+        f'<span class="badge-symbol">{safe_text(symbol)}</span>{value}</span>'
+    )
 
 
 def owner_cell(owner: object) -> str:
@@ -1902,6 +2181,13 @@ if search_text:
     )
     filtered_channels = filtered_channels[channel_search]
 
+overview_customers = [
+    customer
+    for customer in selected_customers
+    if customer in set(customer_scope_channels["portfolio"])
+]
+completion_rows = build_completion_rows(customer_scope_channels)
+
 open_operational_records = filtered_records[
     filtered_records["record_type"].isin(["issue", "risk_signal", "escalation"])
 ].copy()
@@ -1975,10 +2261,12 @@ with st.container(border=True):
         st.multiselect("Source Channel", source_channel_options, key="source_channel_filter")
         st.text_input("Search customer / issue / note / channel", key="command_search")
 
+st.html(render_completion_cards(completion_rows))
+st.html(render_status_chart(filtered_channels, overview_customers))
 st.html(render_customer_health(health_view))
-st.html(render_ownership_matrix(health_view))
 st.html(render_open_issues(open_issues))
 st.html(render_escalations(escalations))
+st.html(render_ownership_matrix(health_view))
 st.html(render_risk_feed(risk_feed))
 
 with st.expander("Add manual risk, blocker, owner update, or escalation", expanded=False):
