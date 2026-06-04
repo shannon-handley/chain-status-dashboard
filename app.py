@@ -738,8 +738,8 @@ channels_data = [
     {"portfolio": "Great Wolf", "project": "IBE", "channel": "IBE", "status": "LIVE", "go_live_date": "2026-04-15", "notes": "Finalized and handed over to Support."},
     {"portfolio": "Great Wolf", "project": "Groupon", "channel": "Groupon", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "All batches migrated; stabilization in progress. Sporadic booking failures continue and are under investigation by OGTS/Dev."},
     {"portfolio": "Great Wolf", "project": "Expedia", "channel": "Expedia", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "Pilot + batches 1-3 are live. Remaining properties on pause due to extra person rate issue, under review."},
-    {"portfolio": "Great Wolf", "project": "HGV", "channel": "HGV", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Connectivity development finalized; partner delays remain."},
-    {"portfolio": "Great Wolf", "project": "Google via DerbySoft Meta", "channel": "Google / DerbySoft Meta", "status": "LIVE", "go_live_date": "2026-06-03", "notes": "Validation in progress by DerbySoft."},
+    {"portfolio": "Great Wolf", "project": "HGV", "channel": "HGV", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Channel live, validation in progress by GWR Team."},
+    {"portfolio": "Great Wolf", "project": "Google via DerbySoft Meta", "channel": "Google / DerbySoft Meta", "status": "LIVE", "go_live_date": "2026-06-03", "notes": "Channel live, validation in progress by GWR Team."},
     {"portfolio": "Great Wolf", "project": "Booking.com for NIAGON", "channel": "Booking.com for NIAGON", "status": "LIVE", "go_live_date": "2026-06-02", "notes": "Separate onboarding track; go-live scheduled."},
     {"portfolio": "Great Wolf", "project": "GDS", "channel": "GDS", "status": "NEW", "go_live_date": "", "notes": "Separate workstream, planning in progress."},
 
