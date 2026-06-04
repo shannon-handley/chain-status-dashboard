@@ -1002,7 +1002,10 @@ def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
             bars = "".join(
                 bar_markup(status.lower().replace(" ", "-"), status, item[status], max_count)
                 for status in active_statuses
+                if item[status] > 0
             )
+            if not bars:
+                bars = '<span class="muted-text">No matching channels</span>'
             chart_cards.append(
                 f"""
                 <article class="portfolio-chart">
