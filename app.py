@@ -436,7 +436,14 @@ st.markdown(
 
         div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
             min-height: 2.55rem;
+            box-sizing: border-box !important;
+            overflow: visible !important;
+            padding: 0.28rem 0.45rem 0.28rem 0.65rem !important;
             box-shadow: 0 10px 22px rgba(6, 14, 28, 0.10) !important;
+        }
+
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div > div {
+            overflow: visible !important;
         }
 
         div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div:focus-within {
@@ -447,6 +454,11 @@ st.markdown(
         div[data-testid="stMultiSelect"] input {
             color: var(--paper-text) !important;
             caret-color: var(--paper-text) !important;
+        }
+
+        div[data-testid="stMultiSelect"] div[data-baseweb="tag"] {
+            margin: 0.12rem 0.18rem 0.12rem 0 !important;
+            overflow: visible !important;
         }
 
         div[data-baseweb="select"] > div:hover,
