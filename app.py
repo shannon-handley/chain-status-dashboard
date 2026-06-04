@@ -563,6 +563,9 @@ st.markdown(
             font-weight: 780;
             text-transform: uppercase;
             white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
         }
 
         .styled-table td {
@@ -605,6 +608,34 @@ st.markdown(
             border: 1px solid rgba(124, 92, 255, 0.24);
         }
 
+        .severity-critical,
+        .health-escalated {
+            color: #dc2626;
+            background: rgba(220, 38, 38, 0.12);
+            border: 1px solid rgba(220, 38, 38, 0.28);
+        }
+
+        .severity-high,
+        .health-at-risk {
+            color: #ea580c;
+            background: rgba(234, 88, 12, 0.13);
+            border: 1px solid rgba(234, 88, 12, 0.28);
+        }
+
+        .severity-medium,
+        .health-attention-needed {
+            color: #ca8a04;
+            background: rgba(202, 138, 4, 0.14);
+            border: 1px solid rgba(202, 138, 4, 0.28);
+        }
+
+        .severity-low,
+        .health-healthy {
+            color: #059669;
+            background: rgba(5, 150, 105, 0.12);
+            border: 1px solid rgba(5, 150, 105, 0.26);
+        }
+
         .issue-badge {
             color: var(--issue);
             background: var(--issue-soft);
@@ -620,6 +651,140 @@ st.markdown(
 
         .muted-text {
             color: var(--text-muted);
+        }
+
+        div[data-testid="stMetric"] {
+            min-height: 112px;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.055), rgba(255,255,255,0.018)),
+                var(--card-bg-elevated);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 0.8rem 0.95rem;
+            box-shadow: var(--shadow);
+        }
+
+        div[data-testid="stMetricLabel"] p {
+            color: var(--text-muted) !important;
+            font-size: 0.75rem !important;
+            font-weight: 780 !important;
+            text-transform: uppercase;
+        }
+
+        div[data-testid="stMetricValue"] {
+            color: var(--text-main);
+            font-weight: 820;
+        }
+
+        .rule-grid,
+        .health-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(170px, 1fr));
+            gap: 0.8rem;
+            padding: 1rem;
+        }
+
+        .health-grid {
+            grid-template-columns: repeat(3, minmax(260px, 1fr));
+        }
+
+        .rule-chip,
+        .health-card {
+            border-radius: var(--radius);
+            background: var(--paper-bg);
+            border: 1px solid var(--paper-border);
+            color: var(--paper-text);
+            box-shadow: 0 14px 30px rgba(6, 14, 28, 0.18);
+        }
+
+        .rule-chip {
+            padding: 0.8rem;
+        }
+
+        .rule-chip strong,
+        .health-card h3 {
+            display: block;
+            margin: 0 0 0.35rem;
+            color: var(--paper-text);
+            font-size: 0.95rem;
+        }
+
+        .rule-chip span,
+        .health-meta,
+        .health-detail {
+            color: var(--paper-muted);
+            font-size: 0.8rem;
+        }
+
+        .health-card {
+            padding: 0.95rem;
+            border-left: 5px solid #94a3b8;
+        }
+
+        .health-card.health-escalated {
+            border-left-color: #dc2626;
+        }
+
+        .health-card.health-at-risk {
+            border-left-color: #ea580c;
+        }
+
+        .health-card.health-attention-needed {
+            border-left-color: #ca8a04;
+        }
+
+        .health-card.health-healthy {
+            border-left-color: #059669;
+        }
+
+        .health-top,
+        .health-counts,
+        .ownership-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.65rem;
+        }
+
+        .health-counts {
+            margin: 0.75rem 0;
+        }
+
+        .mini-stat {
+            display: grid;
+            gap: 0.1rem;
+        }
+
+        .mini-stat strong {
+            color: var(--paper-text);
+            font-size: 1.05rem;
+        }
+
+        .mini-stat span {
+            color: var(--paper-muted);
+            font-size: 0.68rem;
+            font-weight: 780;
+            text-transform: uppercase;
+        }
+
+        .attention-strip {
+            margin: 1rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius);
+            background: rgba(220, 38, 38, 0.12);
+            border: 1px solid rgba(220, 38, 38, 0.34);
+            color: #fecaca;
+            font-weight: 720;
+        }
+
+        .owner-missing {
+            color: #fecaca;
+            background: rgba(220, 38, 38, 0.16);
+            border: 1px solid rgba(220, 38, 38, 0.30);
+            border-radius: 999px;
+            padding: 0.18rem 0.48rem;
+            font-size: 0.72rem;
+            font-weight: 780;
         }
 
         .upcoming-grid {
@@ -704,7 +869,9 @@ st.markdown(
 
             .completion-grid,
             .chart-grid,
-            .upcoming-grid {
+            .upcoming-grid,
+            .health-grid,
+            .rule-grid {
                 grid-template-columns: 1fr;
             }
 
@@ -891,6 +1058,118 @@ df_channels["go_live_date"] = pd.to_datetime(
 ).dt.date
 df_channels["status"] = df_channels["status"].str.upper()
 
+SEVERITY_ORDER = {"Critical": 4, "High": 3, "Medium": 2, "Low": 1, "None": 0}
+HEALTH_ORDER = {
+    "Escalated": 4,
+    "At Risk": 3,
+    "Attention Needed": 2,
+    "Healthy": 1,
+}
+ESCALATION_RULES = [
+    ("Blocked > 3 days", "Escalate when a blocker has no confirmed movement for 3 business days."),
+    ("No owner assigned", "Any record without an accountable owner is immediately flagged."),
+    ("Go-live delay > 2 days", "Missed or moved go-live dates require a named recovery action."),
+    ("Critical issue stalled", "Critical items with no activity are treated as executive escalations."),
+]
+PREVIOUS_SNAPSHOT: dict[str, int] = {}
+
+CUSTOMER_PROFILES = {
+    "Great Wolf": {
+        "accountable_owner": "GWR Team",
+        "support_team": "OGTS / Dev",
+        "escalation_contact": "Oracle Support",
+        "next_milestone": "Stabilize live channels and complete GDS planning",
+        "target_date": "2026-06-05",
+    },
+    "Loews": {
+        "accountable_owner": "Loews Onboarding Team",
+        "support_team": "Distribution Engineering",
+        "escalation_contact": "Oracle Support",
+        "next_milestone": "Cendyn IBE go-live recovery",
+        "target_date": "2026-06-09",
+    },
+    "Pan Pacific": {
+        "accountable_owner": "PPHG Team",
+        "support_team": "OGTS / Distribution UI",
+        "escalation_contact": "OGTS Escalation",
+        "next_milestone": "Resolve OCC publication gaps and progress OTA validations",
+        "target_date": "2026-06-04",
+    },
+}
+
+ISSUE_ENRICHMENT = {
+    ("Great Wolf", "Groupon"): {
+        "severity": "High",
+        "owner": "OGTS / Dev",
+        "accountable_owner": "GWR Team",
+        "support_team": "Oracle Support",
+        "escalation_contact": "Oracle Support",
+        "created_at": "2026-06-02",
+        "due_date": "2026-06-04",
+        "impact": "Sporadic booking failures affecting live Groupon traffic.",
+        "next_action": "Confirm root cause and publish stabilization plan.",
+        "escalation_status": "Escalated",
+        "blocked": True,
+        "escalated": True,
+    },
+    ("Great Wolf", "Expedia"): {
+        "severity": "High",
+        "owner": "Product Team",
+        "accountable_owner": "GWR Team",
+        "support_team": "OGTS / Dev",
+        "escalation_contact": "Product Lead",
+        "created_at": "2026-05-07",
+        "due_date": "2026-06-05",
+        "impact": "Remaining Expedia properties are paused pending extra-person rate decision.",
+        "next_action": "Product Team to confirm calculation decision and resume migration path.",
+        "escalation_status": "Watch",
+        "blocked": True,
+        "escalated": False,
+    },
+    ("Pan Pacific", "DSW & RSW channels"): {
+        "severity": "Critical",
+        "owner": "OGTS Escalation",
+        "accountable_owner": "PPHG Team",
+        "support_team": "Distribution UI",
+        "escalation_contact": "OGTS Escalation",
+        "created_at": "2026-05-14",
+        "due_date": "2026-06-04",
+        "impact": "DSW & RSW channels are missing for OCC publication workflows.",
+        "next_action": "Restore missing channels in OCC; continue Distribution UI workaround until fixed.",
+        "escalation_status": "Escalated",
+        "blocked": True,
+        "escalated": True,
+    },
+    ("Loews", "Booking.com"): {
+        "severity": "High",
+        "owner": "Oracle Support",
+        "accountable_owner": "Loews Onboarding Team",
+        "support_team": "OPERA Interface Team",
+        "escalation_contact": "Oracle Support",
+        "created_at": "2026-05-13",
+        "due_date": "2026-06-06",
+        "impact": "Reservations are not consistently interfacing into OPERA.",
+        "next_action": "Complete email/contact configuration and reservation-note investigation.",
+        "escalation_status": "Watch",
+        "blocked": False,
+        "escalated": False,
+    },
+    ("Loews", "GDS"): {
+        "severity": "Medium",
+        "owner": "GDS Support",
+        "accountable_owner": "Loews Onboarding Team",
+        "support_team": "Sabre / GDS",
+        "escalation_contact": "Oracle Support",
+        "created_at": "2026-05-15",
+        "due_date": "2026-06-07",
+        "impact": "GDS pricing, promotion, or negotiated-rate display issues may affect partner availability.",
+        "next_action": "Resolve open GDS cases and validate partner display.",
+        "escalation_status": "In Progress",
+        "blocked": False,
+        "escalated": False,
+    },
+}
+
 
 def safe_text(value: object) -> str:
     if value is None:
@@ -920,111 +1199,6 @@ def section_heading(title: str, detail: str = "") -> str:
     )
 
 
-def render_completion_cards(rows: pd.DataFrame) -> str:
-    cards = []
-    for row in rows.itertuples(index=False):
-        percent = int(round(float(row.completion) * 100))
-        remaining = int(row.total_channels - row.live_channels)
-        logo_uri = LOGO_URIS.get(row.portfolio, "")
-        logo_html = (
-            f'<img class="completion-logo" src="{safe_text(logo_uri)}" '
-            f'alt="{safe_text(row.portfolio)} logo">'
-            if logo_uri
-            else ""
-        )
-        cards.append(
-            f"""
-            <article class="completion-card">
-              <div class="completion-top">
-                <div class="completion-brand">
-                  {logo_html}
-                  <span class="completion-name">{safe_text(row.portfolio)}</span>
-                </div>
-                <span class="completion-percent">{percent}%</span>
-              </div>
-              <div class="progress-track" aria-label="{safe_text(row.portfolio)} is {percent}% complete">
-                <div class="progress-fill" style="width: {percent}%"></div>
-              </div>
-              <div class="completion-meta">
-                <span>{int(row.live_channels)} of {int(row.total_channels)} LIVE</span>
-                <span>{remaining} remaining</span>
-              </div>
-            </article>
-            """
-        )
-
-    return (
-        '<section class="section-card">'
-        + section_heading("Project Completion")
-        + '<div class="completion-grid">'
-        + "".join(cards)
-        + "</div></section>"
-    )
-
-
-def bar_markup(class_name: str, label: str, value: int, max_count: int) -> str:
-    height = 8 if value == 0 else max(26, round((value / max_count) * 178))
-    return (
-        '<div class="bar-wrap">'
-        f'<div class="bar {class_name}" style="height: {height}px" title="{safe_text(label)}: {value}">{value}</div>'
-        f'<div class="bar-label">{safe_text(label)}</div>'
-        "</div>"
-    )
-
-
-def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
-    if rows.empty:
-        chart_body = '<p class="muted-text" style="padding: 1rem;">No channels match the current filters.</p>'
-    else:
-        active_statuses = [
-            status for status in STATUS_ORDER if status in set(rows["status"])
-        ]
-        counts = []
-        for customer in customers:
-            customer_rows = rows[rows["portfolio"] == customer]
-            status_counts = {
-                status: int((customer_rows["status"] == status).sum())
-                for status in active_statuses
-            }
-            counts.append({"portfolio": customer, **status_counts})
-
-        max_count = max(
-            1,
-            max(max(item[status] for status in active_statuses) for item in counts),
-        )
-        chart_cards = []
-        for item in counts:
-            total = sum(item[status] for status in active_statuses)
-            bars = "".join(
-                bar_markup(status.lower().replace(" ", "-"), status, item[status], max_count)
-                for status in active_statuses
-                if item[status] > 0
-            )
-            if not bars:
-                bars = '<span class="muted-text">No matching channels</span>'
-            chart_cards.append(
-                f"""
-                <article class="portfolio-chart">
-                  <div class="bar-stage" aria-label="{safe_text(item["portfolio"])} channel status counts">
-                    {bars}
-                  </div>
-                  <div class="portfolio-label">
-                    <span>{safe_text(item["portfolio"])}</span>
-                    <span>{total} channels</span>
-                  </div>
-                </article>
-                """
-            )
-        chart_body = '<div class="chart-grid">' + "".join(chart_cards) + "</div>"
-
-    return (
-        '<section class="section-card">'
-        + section_heading("Channels by Customer and Status")
-        + chart_body
-        + "</section>"
-    )
-
-
 def render_channel_table(rows: pd.DataFrame) -> str:
     if rows.empty:
         body = '<tr><td colspan="5" class="muted-text">No channels match the current filters.</td></tr>'
@@ -1046,38 +1220,10 @@ def render_channel_table(rows: pd.DataFrame) -> str:
 
     return (
         '<section class="section-card">'
-        + section_heading("Channel Status", f"{len(rows)} visible channels")
+        + section_heading("Detailed Channel Table", f"{len(rows)} visible channels")
         + '<div class="table-wrap"><table class="styled-table">'
         "<thead><tr>"
         "<th>Project</th><th>Channel</th><th>Status</th><th>Live / Proposed Go-Live</th><th>Notes</th>"
-        "</tr></thead><tbody>"
-        + body
-        + "</tbody></table></div></section>"
-    )
-
-
-def render_issues_table(rows: pd.DataFrame) -> str:
-    row_html = []
-    for _, row in rows.iterrows():
-        row_html.append(
-            f"""
-        <tr>
-          <td>{safe_text(row["Customer"])}</td>
-          <td>{safe_text(row["Project"])}</td>
-          <td><span class="issue-badge">{safe_text(row["Issue Type"])}</span></td>
-          <td>{safe_text(row["Link Type"])}</td>
-          <td>{render_link(row["Slack / JIRA Link"])}</td>
-          <td>{safe_text(row["Summary"])}</td>
-        </tr>
-        """
-        )
-    body = "".join(row_html)
-    return (
-        '<section class="section-card">'
-        + section_heading("Issue Tracker", f"{len(rows)} active issues")
-        + '<div class="table-wrap"><table class="styled-table">'
-        "<thead><tr>"
-        "<th>Customer</th><th>Project</th><th>Issue Type</th><th>Link Type</th><th>Slack / JIRA Link</th><th>Summary</th>"
         "</tr></thead><tbody>"
         + body
         + "</tbody></table></div></section>"
@@ -1125,71 +1271,782 @@ def render_upcoming_cards(rows: pd.DataFrame) -> str:
     )
 
 
-# ----------------------------
-# Project completion tracker
-# ----------------------------
+def slugify(value: object) -> str:
+    text = str(value).lower()
+    return "".join(char if char.isalnum() else "-" for char in text).strip("-")
 
-completion_rows = (
-    df_channels.groupby("portfolio", as_index=False)
-    .agg(
-        total_channels=("channel", "count"),
-        live_channels=("status", lambda values: int((values == "LIVE").sum())),
+
+def parse_date(value: object):
+    parsed = pd.to_datetime(value, errors="coerce")
+    if pd.isna(parsed):
+        return None
+    return parsed.date()
+
+
+def format_display_date(value: object) -> str:
+    parsed = parse_date(value)
+    return parsed.strftime("%Y-%m-%d") if parsed else ""
+
+
+def compute_age_days(created_at: object, reference_date=None) -> int:
+    reference = reference_date or CURRENT_VIEW_DATE.date()
+    parsed = parse_date(created_at)
+    if not parsed:
+        return 0
+    return max(0, (reference - parsed).days)
+
+
+def compute_risk_score(record: dict) -> int:
+    severity = SEVERITY_ORDER.get(str(record.get("severity", "None")), 0)
+    age = int(record.get("age_days") or 0)
+    escalated = 40 if bool(record.get("escalated")) else 0
+    blocked = 25 if bool(record.get("blocked")) else 0
+    missing_owner = 35 if not record.get("owner") and not record.get("accountable_owner") else 0
+    return severity * 100 + age + escalated + blocked + missing_owner
+
+
+def profile_for(customer: str) -> dict:
+    return CUSTOMER_PROFILES.get(
+        customer,
+        {
+            "accountable_owner": "Unassigned",
+            "support_team": "Unassigned",
+            "escalation_contact": "Unassigned",
+            "next_milestone": "Confirm customer plan",
+            "target_date": "",
+        },
     )
-    .sort_values("portfolio")
+
+
+def make_record(**kwargs) -> dict:
+    record = {
+        "record_id": "",
+        "record_type": "",
+        "customer": "",
+        "project": "",
+        "title": "",
+        "description": "",
+        "status": "Open",
+        "severity": "None",
+        "owner": "",
+        "accountable_owner": "",
+        "support_team": "",
+        "escalation_contact": "",
+        "source": "",
+        "source_channel": "",
+        "source_link": "",
+        "created_at": CURRENT_VIEW_DATE.date().isoformat(),
+        "updated_at": CURRENT_VIEW_DATE.date().isoformat(),
+        "due_date": "",
+        "age_days": 0,
+        "health_state": "",
+        "next_action": "",
+        "impact": "",
+        "blocked": False,
+        "escalated": False,
+        "duplicate_count": 1,
+        "last_activity_at": CURRENT_VIEW_DATE.date().isoformat(),
+        "escalation_status": "Not Escalated",
+        "risk_score": 0,
+    }
+    record.update(kwargs)
+    record["age_days"] = compute_age_days(record.get("created_at"))
+    record["risk_score"] = compute_risk_score(record)
+    if not record["record_id"]:
+        record["record_id"] = (
+            f"{record['record_type']}-{slugify(record['customer'])}-{slugify(record['title'])}"
+        )
+    return record
+
+
+def normalize_source_records(
+    channels: pd.DataFrame, issues: pd.DataFrame, manual_records: list[dict]
+) -> pd.DataFrame:
+    records: list[dict] = []
+
+    for customer in sorted(channels["portfolio"].unique()):
+        profile = profile_for(customer)
+        records.append(
+            make_record(
+                record_type="customer",
+                customer=customer,
+                project=customer,
+                title=f"{customer} operational ownership",
+                description=profile["next_milestone"],
+                status="Active",
+                owner=profile["accountable_owner"],
+                accountable_owner=profile["accountable_owner"],
+                support_team=profile["support_team"],
+                escalation_contact=profile["escalation_contact"],
+                source="Customer profile",
+                source_channel="Manual",
+                due_date=profile["target_date"],
+                health_state="Attention Needed",
+                next_action=profile["next_milestone"],
+                impact="Customer-level ownership and milestone tracking.",
+            )
+        )
+
+    for _, issue in issues.iterrows():
+        customer = issue["portfolio"]
+        project = issue["project"]
+        profile = profile_for(customer)
+        defaults = {
+            **profile,
+            **ISSUE_ENRICHMENT.get((customer, project), {}),
+        }
+        severity = defaults.get("severity", "Medium")
+        escalation_status = defaults.get("escalation_status", "In Progress")
+        escalated = bool(defaults.get("escalated", escalation_status == "Escalated"))
+        blocked = bool(defaults.get("blocked", severity in {"Critical", "High"}))
+        created_at = defaults.get("created_at", CURRENT_VIEW_DATE.date().isoformat())
+        source_channel = issue.get("link_type", "") or "Manual"
+        source_link = issue.get("link", "")
+        issue_record = make_record(
+            record_type="issue",
+            customer=customer,
+            project=project,
+            title=f"{project}: {issue['issue_type']}",
+            description=issue["summary"],
+            status="Open",
+            severity=severity,
+            owner=defaults.get("owner", defaults.get("accountable_owner", "")),
+            accountable_owner=defaults.get("accountable_owner", profile["accountable_owner"]),
+            support_team=defaults.get("support_team", profile["support_team"]),
+            escalation_contact=defaults.get(
+                "escalation_contact", profile["escalation_contact"]
+            ),
+            source=f"{source_channel} issue tracker",
+            source_channel=source_channel,
+            source_link=source_link,
+            created_at=created_at,
+            updated_at=defaults.get("updated_at", CURRENT_VIEW_DATE.date().isoformat()),
+            due_date=defaults.get("due_date", ""),
+            next_action=defaults.get("next_action", "Confirm owner, next action, and due date."),
+            impact=defaults.get("impact", issue["summary"]),
+            blocked=blocked,
+            escalated=escalated,
+            duplicate_count=1,
+            last_activity_at=defaults.get("last_activity_at", created_at),
+            escalation_status=escalation_status,
+        )
+        records.append(issue_record)
+
+        if escalated or severity == "Critical":
+            records.append(
+                make_record(
+                    **{
+                        **issue_record,
+                        "record_id": f"esc-{issue_record['record_id']}",
+                        "record_type": "escalation",
+                        "title": issue_record["title"],
+                        "description": issue_record["description"],
+                        "status": "Escalated",
+                        "escalated": True,
+                        "escalation_status": "Escalated",
+                        "source": issue_record["source"],
+                    }
+                )
+            )
+
+    non_live = channels[channels["status"] != "LIVE"].copy()
+    if not non_live.empty:
+        for (customer, status), group in non_live.groupby(["portfolio", "status"]):
+            profile = profile_for(customer)
+            channel_names = ", ".join(group["channel"].head(4))
+            if len(group) > 4:
+                channel_names += f", +{len(group) - 4} more"
+            delayed = group["notes"].str.contains("delayed|blocked|unable|pending", case=False, na=False).any()
+            severity = "High" if delayed and status == "NEW" else "Medium"
+            records.append(
+                make_record(
+                    record_type="risk_signal",
+                    customer=customer,
+                    project="Channel Status",
+                    title=f"{len(group)} {status.title()} channel(s)",
+                    description=f"{channel_names}: {status.title()} status requires active follow-up.",
+                    status=status,
+                    severity=severity,
+                    owner=profile["accountable_owner"],
+                    accountable_owner=profile["accountable_owner"],
+                    support_team=profile["support_team"],
+                    escalation_contact=profile["escalation_contact"],
+                    source="Channel status table",
+                    source_channel="Manual",
+                    created_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    updated_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    due_date=profile["target_date"],
+                    next_action="Confirm owner progress and next milestone for grouped channels.",
+                    impact=f"{len(group)} channel(s) not yet live.",
+                    blocked=status == "NEW",
+                    escalated=False,
+                    duplicate_count=int(len(group)),
+                    last_activity_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    escalation_status="Watch" if status == "NEW" else "Not Escalated",
+                )
+            )
+
+    for manual in manual_records:
+        records.append(make_record(**manual))
+
+    return pd.DataFrame(records)
+
+
+def compute_customer_health(customer: str, channels: pd.DataFrame, records: pd.DataFrame) -> dict:
+    customer_channels = channels[channels["portfolio"] == customer]
+    customer_records = records[
+        (records["customer"] == customer) & (records["record_type"] != "customer")
+    ]
+    live_count = int((customer_channels["status"] == "LIVE").sum())
+    in_progress_count = int((customer_channels["status"] == "IN PROGRESS").sum())
+    new_count = int((customer_channels["status"] == "NEW").sum())
+    blocked_records = int(customer_records["blocked"].fillna(False).sum()) if not customer_records.empty else 0
+    blocked_count = new_count + blocked_records
+    escalated = bool(customer_records["escalated"].fillna(False).any()) if not customer_records.empty else False
+    critical = bool((customer_records["severity"] == "Critical").any()) if not customer_records.empty else False
+    high = bool((customer_records["severity"] == "High").any()) if not customer_records.empty else False
+
+    if escalated or critical:
+        health_state = "Escalated"
+    elif blocked_count > 0 or high:
+        health_state = "At Risk"
+    elif in_progress_count > 0 or not customer_records.empty:
+        health_state = "Attention Needed"
+    else:
+        health_state = "Healthy"
+
+    profile = profile_for(customer)
+    top_record = (
+        customer_records.sort_values(["risk_score", "age_days"], ascending=False).head(1)
+        if not customer_records.empty
+        else pd.DataFrame()
+    )
+    next_action = (
+        top_record.iloc[0]["next_action"] if not top_record.empty else profile["next_milestone"]
+    )
+    target_date = (
+        top_record.iloc[0]["due_date"]
+        if not top_record.empty and top_record.iloc[0]["due_date"]
+        else profile["target_date"]
+    )
+    total = int(len(customer_channels))
+    completion = live_count / total if total else 0
+    return {
+        "customer": customer,
+        "health_state": health_state,
+        "live_count": live_count,
+        "in_progress_count": in_progress_count,
+        "blocked_count": blocked_count,
+        "total_channels": total,
+        "completion": completion,
+        "next_milestone": profile["next_milestone"],
+        "target_date": target_date,
+        "owner": profile["accountable_owner"],
+        "accountable_owner": profile["accountable_owner"],
+        "support_team": profile["support_team"],
+        "escalation_contact": profile["escalation_contact"],
+        "next_action": next_action,
+        "last_updated": CURRENT_VIEW_DATE.strftime("%Y-%m-%d %H:%M"),
+        "open_items": int(len(customer_records)),
+        "missing_owner_count": int(
+            customer_records["owner"].fillna("").eq("").sum()
+        )
+        if not customer_records.empty
+        else 0,
+    }
+
+
+def aggregate_customer_rollups(channels: pd.DataFrame, records: pd.DataFrame) -> pd.DataFrame:
+    rows = [
+        compute_customer_health(customer, channels, records)
+        for customer in sorted(channels["portfolio"].unique())
+    ]
+    return pd.DataFrame(rows).sort_values(
+        "health_state", key=lambda values: values.map(HEALTH_ORDER), ascending=False
+    )
+
+
+def aggregate_escalations(records: pd.DataFrame) -> pd.DataFrame:
+    if records.empty:
+        return records
+    escalations = records[records["record_type"] == "escalation"].copy()
+    if escalations.empty:
+        return escalations
+    return escalations.sort_values(["risk_score", "age_days"], ascending=False)
+
+
+def severity_badge(severity: object) -> str:
+    value = safe_text(severity or "None")
+    css = f"severity-{value.lower()}"
+    return f'<span class="status-badge {css}">{value}</span>'
+
+
+def health_badge(health: object) -> str:
+    value = safe_text(health)
+    css = f"health-{value.lower().replace(' ', '-')}"
+    return f'<span class="status-badge {css}">{value}</span>'
+
+
+def owner_cell(owner: object) -> str:
+    text = safe_text(owner)
+    if not text or text == "Unassigned":
+        return '<span class="owner-missing">Missing owner</span>'
+    return text
+
+
+def render_source_cell(row: pd.Series) -> str:
+    label = safe_text(row.get("source_channel", "") or row.get("source", ""))
+    link = row.get("source_link", "")
+    if link:
+        return render_link(link, label or "Open source")
+    return label or '<span class="muted-text">Manual</span>'
+
+
+def render_escalation_rules() -> str:
+    cards = "".join(
+        f"""
+        <article class="rule-chip">
+          <strong>{safe_text(title)}</strong>
+          <span>{safe_text(detail)}</span>
+        </article>
+        """
+        for title, detail in ESCALATION_RULES
+    )
+    return (
+        '<section class="section-card">'
+        + section_heading("Escalation Rules", "Thresholds used for executive attention")
+        + f'<div class="rule-grid">{cards}</div></section>'
+    )
+
+
+def render_customer_health(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
+    else:
+        cards = []
+        for row in rows.itertuples(index=False):
+            health_class = f"health-{row.health_state.lower().replace(' ', '-')}"
+            percent = int(round(float(row.completion) * 100))
+            cards.append(
+                f"""
+                <article class="health-card {health_class}">
+                  <div class="health-top">
+                    <h3>{safe_text(row.customer)}</h3>
+                    {health_badge(row.health_state)}
+                  </div>
+                  <div class="health-counts">
+                    <span class="mini-stat"><strong>{int(row.live_count)}</strong><span>Live</span></span>
+                    <span class="mini-stat"><strong>{int(row.in_progress_count)}</strong><span>In progress</span></span>
+                    <span class="mini-stat"><strong>{int(row.blocked_count)}</strong><span>Blocked</span></span>
+                  </div>
+                  <div class="progress-track" aria-label="{safe_text(row.customer)} completion">
+                    <div class="progress-fill" style="width:{percent}%"></div>
+                  </div>
+                  <p class="health-detail"><strong>Milestone:</strong> {safe_text(row.next_milestone)}</p>
+                  <p class="health-detail"><strong>Target:</strong> {safe_text(row.target_date)} | <strong>Owner:</strong> {owner_cell(row.owner)}</p>
+                  <p class="health-meta">Updated {safe_text(row.last_updated)} | {percent}% live</p>
+                </article>
+                """
+            )
+        body = '<div class="health-grid">' + "".join(cards) + "</div>"
+    return (
+        '<section class="section-card">'
+        + section_heading("Customer Health", "Ownership, milestones, blockers")
+        + body
+        + "</section>"
+    )
+
+
+def render_ownership_matrix(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<tr><td colspan="7" class="muted-text">No ownership rows match filters.</td></tr>'
+    else:
+        body = "".join(
+            f"""
+            <tr>
+              <td>{safe_text(row.customer)}</td>
+              <td>{health_badge(row.health_state)}</td>
+              <td>{owner_cell(row.accountable_owner)}</td>
+              <td>{safe_text(row.support_team)}</td>
+              <td>{safe_text(row.escalation_contact)}</td>
+              <td>{int(row.open_items)}</td>
+              <td>{int(row.missing_owner_count)}</td>
+            </tr>
+            """
+            for row in rows.itertuples(index=False)
+        )
+    return (
+        '<section class="section-card">'
+        + section_heading("Ownership Matrix", "Accountable owner, support team, escalation path")
+        + '<div class="table-wrap"><table class="styled-table"><thead><tr>'
+        '<th>Customer</th><th>Health</th><th>Accountable Owner</th><th>Supporting Team</th><th>Escalation Contact</th><th>Open Items</th><th>Missing Owner</th>'
+        '</tr></thead><tbody>'
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+def render_open_issues(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<tr><td colspan="9" class="muted-text">No open issues or blockers match filters.</td></tr>'
+        critical_note = ""
+    else:
+        critical_count = int(
+            ((rows["severity"] == "Critical") | (rows["escalation_status"] == "Escalated")).sum()
+        )
+        critical_note = (
+            f'<div class="attention-strip">{critical_count} critical or escalated item(s) require executive attention.</div>'
+            if critical_count
+            else ""
+        )
+        body = "".join(
+            f"""
+            <tr>
+              <td>{severity_badge(row["severity"])}</td>
+              <td>{safe_text(row["customer"])}</td>
+              <td>{safe_text(row["title"])}</td>
+              <td>{owner_cell(row["owner"])}</td>
+              <td>{int(row["age_days"])}</td>
+              <td>{safe_text(row["impact"])}</td>
+              <td>{safe_text(row["escalation_status"])}</td>
+              <td>{safe_text(row["next_action"])}</td>
+              <td>{render_source_cell(row)}</td>
+            </tr>
+            """
+            for _, row in rows.iterrows()
+        )
+    return (
+        '<section class="section-card">'
+        + section_heading("Open Issues & Blockers", f"{len(rows)} prioritized operational records")
+        + critical_note
+        + '<div class="table-wrap"><table class="styled-table"><thead><tr>'
+        '<th>Severity</th><th>Customer</th><th>Issue</th><th>Owner</th><th>Age</th><th>Impact</th><th>Escalation</th><th>Next Action</th><th>Source</th>'
+        '</tr></thead><tbody>'
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+def render_escalations(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<tr><td colspan="6" class="muted-text">No active executive escalations match filters.</td></tr>'
+    else:
+        body = "".join(
+            f"""
+            <tr>
+              <td>{safe_text(row["title"])}</td>
+              <td>{safe_text(row["created_at"])}</td>
+              <td>{owner_cell(row["owner"])}</td>
+              <td>{severity_badge(row["severity"])}</td>
+              <td>{safe_text(row["next_action"])}</td>
+              <td>{safe_text(row["due_date"])}</td>
+            </tr>
+            """
+            for _, row in rows.iterrows()
+        )
+    return (
+        '<section class="section-card">'
+        + section_heading("Executive Escalations", "Triggers, owners, due dates")
+        + '<div class="table-wrap"><table class="styled-table"><thead><tr>'
+        '<th>Trigger</th><th>Triggered</th><th>Owner</th><th>Severity</th><th>Next Action</th><th>Due Date</th>'
+        '</tr></thead><tbody>'
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+def render_risk_feed(rows: pd.DataFrame) -> str:
+    if rows.empty:
+        body = '<tr><td colspan="8" class="muted-text">No risk signals match filters.</td></tr>'
+    else:
+        body = "".join(
+            f"""
+            <tr>
+              <td>{safe_text(row["customer"])}</td>
+              <td>{safe_text(row["description"])}</td>
+              <td>{safe_text(row["source_channel"])}</td>
+              <td>{severity_badge(row["severity"])}</td>
+              <td>{owner_cell(row["owner"])}</td>
+              <td>{safe_text(row["project"])}</td>
+              <td>{safe_text(row["last_activity_at"])}</td>
+              <td>{int(row["duplicate_count"])}</td>
+            </tr>
+            """
+            for _, row in rows.iterrows()
+        )
+    return (
+        '<section class="section-card">'
+        + section_heading("Risk Feed", "Slack, Jira, manual, and channel-status signals")
+        + '<div class="table-wrap"><table class="styled-table"><thead><tr>'
+        '<th>Customer</th><th>Signal Summary</th><th>Source Channel</th><th>Severity</th><th>Owner</th><th>Linked Item</th><th>Timestamp</th><th>Mentions</th>'
+        '</tr></thead><tbody>'
+        + body
+        + "</tbody></table></div></section>"
+    )
+
+
+# ----------------------------
+# Executive command center
+# ----------------------------
+
+if "manual_records" not in st.session_state:
+    st.session_state["manual_records"] = []
+
+records_df = normalize_source_records(
+    df_channels, df_issues, st.session_state["manual_records"]
 )
-completion_rows["completion"] = (
-    completion_rows["live_channels"] / completion_rows["total_channels"]
-).fillna(0)
+health_df = aggregate_customer_rollups(df_channels, records_df)
 
-st.html(render_completion_cards(completion_rows))
+customer_options = sorted(df_channels["portfolio"].unique())
+status_options = [status for status in STATUS_ORDER if status in set(df_channels["status"])]
+severity_options = [
+    severity
+    for severity in ["Critical", "High", "Medium", "Low", "None"]
+    if severity in set(records_df["severity"])
+]
+owner_options = sorted(
+    {
+        owner
+        for owner in records_df["owner"].fillna("").tolist()
+        + records_df["accountable_owner"].fillna("").tolist()
+        if owner
+    }
+)
+escalation_options = sorted(
+    status for status in records_df["escalation_status"].fillna("").unique() if status
+)
+source_channel_options = sorted(
+    channel for channel in records_df["source_channel"].fillna("").unique() if channel
+)
+health_options = [
+    health
+    for health in ["Escalated", "At Risk", "Attention Needed", "Healthy"]
+    if health in set(health_df["health_state"])
+]
 
-st.divider()
 
-# ----------------------------
-# Filters
-# ----------------------------
+def sync_multiselect_state(key: str, options: list[str], default: list[str]) -> None:
+    if key not in st.session_state:
+        st.session_state[key] = default
+    else:
+        st.session_state[key] = [value for value in st.session_state[key] if value in options]
+        if not st.session_state[key] and default:
+            st.session_state[key] = default
 
-with st.container(border=True):
-    st.html(section_heading("Filters", "Refine the channel view"))
-    left, right = st.columns([1, 2])
 
-    with left:
-        portfolio_filter = st.multiselect(
-            "Customer",
-            options=sorted(df_channels["portfolio"].unique()),
-            default=sorted(df_channels["portfolio"].unique()),
-        )
+sync_multiselect_state("customer_filter", customer_options, customer_options)
+sync_multiselect_state("status_filter", status_options, status_options)
+sync_multiselect_state("severity_filter", severity_options, severity_options)
+sync_multiselect_state("owner_filter", owner_options, owner_options)
+sync_multiselect_state("escalation_filter", escalation_options, escalation_options)
+sync_multiselect_state("source_channel_filter", source_channel_options, source_channel_options)
+sync_multiselect_state("health_filter", health_options, health_options)
+if "command_search" not in st.session_state:
+    st.session_state["command_search"] = ""
 
-        status_filter = st.multiselect(
-            "Status",
-            options=[status for status in STATUS_ORDER if status in set(df_channels["status"])],
-            default=[status for status in STATUS_ORDER if status in set(df_channels["status"])],
-        )
+selected_customers = st.session_state["customer_filter"]
+selected_statuses = st.session_state["status_filter"]
+selected_severities = st.session_state["severity_filter"]
+selected_owners = st.session_state["owner_filter"]
+selected_escalations = st.session_state["escalation_filter"]
+selected_source_channels = st.session_state["source_channel_filter"]
+selected_health_states = st.session_state["health_filter"]
+search_text = st.session_state["command_search"].strip()
 
-    with right:
-        search_text = st.text_input("Search channels / customers / notes", value="")
+customer_scope_channels = df_channels[df_channels["portfolio"].isin(selected_customers)].copy()
+customer_scope_records = records_df[records_df["customer"].isin(selected_customers)].copy()
 
-filtered_channels = df_channels[
-    df_channels["portfolio"].isin(portfolio_filter)
-    & df_channels["status"].isin(status_filter)
+filtered_records = customer_scope_records[
+    customer_scope_records["severity"].isin(selected_severities)
+    & customer_scope_records["escalation_status"].isin(selected_escalations)
+    & customer_scope_records["source_channel"].isin(selected_source_channels)
+    & (
+        customer_scope_records["owner"].isin(selected_owners)
+        | customer_scope_records["accountable_owner"].isin(selected_owners)
+    )
 ].copy()
 
-if search_text.strip():
-    mask = (
+if search_text:
+    record_search = (
+        filtered_records["customer"].str.contains(search_text, case=False, na=False)
+        | filtered_records["project"].str.contains(search_text, case=False, na=False)
+        | filtered_records["title"].str.contains(search_text, case=False, na=False)
+        | filtered_records["description"].str.contains(search_text, case=False, na=False)
+        | filtered_records["impact"].str.contains(search_text, case=False, na=False)
+        | filtered_records["next_action"].str.contains(search_text, case=False, na=False)
+    )
+    filtered_records = filtered_records[record_search]
+
+health_view = health_df[
+    health_df["customer"].isin(selected_customers)
+    & health_df["health_state"].isin(selected_health_states)
+].copy()
+if selected_owners:
+    health_view = health_view[health_view["accountable_owner"].isin(selected_owners)]
+if search_text:
+    health_view = health_view[
+        health_view["customer"].str.contains(search_text, case=False, na=False)
+        | health_view["next_milestone"].str.contains(search_text, case=False, na=False)
+        | health_view["next_action"].str.contains(search_text, case=False, na=False)
+    ]
+
+filtered_channels = customer_scope_channels[
+    customer_scope_channels["status"].isin(selected_statuses)
+].copy()
+if search_text:
+    channel_search = (
         filtered_channels["channel"].str.contains(search_text, case=False, na=False)
         | filtered_channels["portfolio"].str.contains(search_text, case=False, na=False)
+        | filtered_channels["project"].str.contains(search_text, case=False, na=False)
         | filtered_channels["notes"].str.contains(search_text, case=False, na=False)
     )
-    filtered_channels = filtered_channels[mask]
+    filtered_channels = filtered_channels[channel_search]
+
+open_operational_records = filtered_records[
+    filtered_records["record_type"].isin(["issue", "risk_signal", "escalation"])
+].copy()
+open_issues = open_operational_records[
+    open_operational_records["record_type"].isin(["issue", "risk_signal"])
+].sort_values(["risk_score", "age_days"], ascending=False)
+escalations = aggregate_escalations(filtered_records)
+risk_feed = filtered_records[
+    filtered_records["record_type"].isin(["risk_signal", "issue", "escalation"])
+].sort_values(["risk_score", "age_days"], ascending=False)
+
+missing_owner_count = int(
+    open_operational_records["owner"].fillna("").eq("").sum()
+    + open_operational_records["accountable_owner"].fillna("").eq("").sum()
+)
+attention_today = open_operational_records[
+    (open_operational_records["due_date"].apply(parse_date).apply(
+        lambda value: bool(value and value <= CURRENT_VIEW_DATE.date())
+    ))
+    | (open_operational_records["severity"] == "Critical")
+    | open_operational_records["escalated"].fillna(False)
+    | open_operational_records["owner"].fillna("").eq("")
+]
+
+kpis = {
+    "critical_issues": int((open_operational_records["severity"] == "Critical").sum()),
+    "open_escalations": int(len(escalations)),
+    "customers_at_risk": int(
+        health_view["health_state"].isin(["Escalated", "At Risk"]).sum()
+    ),
+    "attention_today": int(len(attention_today)),
+    "channels_live": int((customer_scope_channels["status"] == "LIVE").sum()),
+    "customers_healthy": int((health_view["health_state"] == "Healthy").sum()),
+}
+
+metric_specs = [
+    ("Critical issues", "critical_issues"),
+    ("Open escalations", "open_escalations"),
+    ("Customers at risk", "customers_at_risk"),
+    ("Needs action today", "attention_today"),
+    ("Channels live", "channels_live"),
+    ("Customers healthy", "customers_healthy"),
+]
+
+metric_cols = st.columns(len(metric_specs))
+for col, (label, key) in zip(metric_cols, metric_specs):
+    value = kpis[key]
+    previous = PREVIOUS_SNAPSHOT.get(key)
+    delta = None if previous is None else value - previous
+    col.metric(label, value, delta=delta)
+
+if missing_owner_count:
+    st.warning(
+        f"{missing_owner_count} operational ownership field(s) are missing. Assign an owner before executive review."
+    )
+
+st.html(render_escalation_rules())
+
+with st.container(border=True):
+    st.html(section_heading("Command Filters", "Filter customers, severity, ownership, source, and channel status"))
+    f1, f2, f3 = st.columns(3)
+    with f1:
+        st.multiselect("Customer", customer_options, key="customer_filter")
+        st.multiselect("Channel Status", status_options, key="status_filter")
+        st.multiselect("Health State", health_options, key="health_filter")
+    with f2:
+        st.multiselect("Severity", severity_options, key="severity_filter")
+        st.multiselect("Owner", owner_options, key="owner_filter")
+    with f3:
+        st.multiselect("Escalation Status", escalation_options, key="escalation_filter")
+        st.multiselect("Source Channel", source_channel_options, key="source_channel_filter")
+        st.text_input("Search customer / issue / note / channel", key="command_search")
+
+st.html(render_customer_health(health_view))
+st.html(render_ownership_matrix(health_view))
+st.html(render_open_issues(open_issues))
+st.html(render_escalations(escalations))
+st.html(render_risk_feed(risk_feed))
+
+with st.expander("Add manual risk, blocker, owner update, or escalation", expanded=False):
+    with st.form("manual_operational_record", clear_on_submit=True):
+        c1, c2, c3 = st.columns(3)
+        with c1:
+            manual_type_label = st.selectbox(
+                "Record type",
+                ["Risk signal", "Issue / blocker", "Escalation"],
+            )
+            manual_customer = st.selectbox("Customer", customer_options)
+            manual_severity = st.selectbox("Severity", ["Critical", "High", "Medium", "Low"])
+        with c2:
+            manual_owner = st.text_input("Accountable owner")
+            manual_support = st.text_input("Supporting team")
+            manual_escalation_contact = st.text_input("Escalation contact")
+        with c3:
+            manual_source = st.selectbox("Source channel", ["Manual", "Slack", "Email", "JIRA"])
+            manual_due_date = st.date_input("Due date", value=CURRENT_VIEW_DATE.date())
+            manual_link = st.text_input("Source link")
+
+        manual_title = st.text_input("Title")
+        manual_description = st.text_area("Signal / issue summary")
+        manual_impact = st.text_area("Impact")
+        manual_next_action = st.text_input("Next action")
+
+        submitted = st.form_submit_button("Add to operational feed")
+        if submitted:
+            record_type = {
+                "Risk signal": "risk_signal",
+                "Issue / blocker": "issue",
+                "Escalation": "escalation",
+            }[manual_type_label]
+            if not manual_title.strip():
+                st.error("Add a title before submitting the record.")
+            else:
+                manual_record = make_record(
+                    record_id=f"manual-{len(st.session_state['manual_records']) + 1}-{int(datetime.now().timestamp())}",
+                    record_type=record_type,
+                    customer=manual_customer,
+                    project="Manual input",
+                    title=manual_title.strip(),
+                    description=manual_description.strip(),
+                    status="Escalated" if record_type == "escalation" else "Open",
+                    severity=manual_severity,
+                    owner=manual_owner.strip(),
+                    accountable_owner=manual_owner.strip(),
+                    support_team=manual_support.strip(),
+                    escalation_contact=manual_escalation_contact.strip(),
+                    source="Manual operator input",
+                    source_channel=manual_source,
+                    source_link=manual_link.strip(),
+                    created_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    updated_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    due_date=manual_due_date.isoformat(),
+                    next_action=manual_next_action.strip(),
+                    impact=manual_impact.strip(),
+                    blocked=record_type in {"issue", "escalation"},
+                    escalated=record_type == "escalation",
+                    duplicate_count=1,
+                    last_activity_at=CURRENT_VIEW_DATE.date().isoformat(),
+                    escalation_status="Escalated" if record_type == "escalation" else "Watch",
+                )
+                st.session_state["manual_records"].append(manual_record)
+                st.rerun()
 
 # ----------------------------
-# Status visual
-# ----------------------------
-
-st.html(render_status_chart(filtered_channels, sorted(portfolio_filter)))
-
-# ----------------------------
-# Channels table
+# Detailed channel table
 # ----------------------------
 
 channels_display = filtered_channels.copy()
@@ -1197,11 +2054,7 @@ channels_display["project"] = channels_display["portfolio"]
 channels_display["go_live_date"] = channels_display["go_live_date"].apply(
     lambda value: value.strftime("%Y-%m-%d") if pd.notna(value) else ""
 )
-
-channels_display = channels_display[
-    ["project", "channel", "status", "go_live_date", "notes"]
-]
-
+channels_display = channels_display[["project", "channel", "status", "go_live_date", "notes"]]
 channels_display = channels_display.rename(
     columns={
         "project": "Project",
@@ -1213,40 +2066,11 @@ channels_display = channels_display.rename(
 )
 
 st.html(render_channel_table(channels_display))
-
-# ----------------------------
-# Issue tracker
-# ----------------------------
-
-issues_display = df_issues[df_issues["portfolio"].isin(portfolio_filter)].copy()
-issues_display = issues_display.rename(
-    columns={
-        "portfolio": "Customer",
-        "project": "Project",
-        "issue_type": "Issue Type",
-        "link_type": "Link Type",
-        "link": "Slack / JIRA Link",
-        "summary": "Summary",
-    }
-)
-
-st.html(render_issues_table(issues_display))
-
-# ----------------------------
-# Upcoming chain migrations
-# ----------------------------
-
 st.html(render_upcoming_cards(df_upcoming_chains))
-
-# ----------------------------
-# Optional download
-# ----------------------------
 
 download_channels = df_channels.copy()
 download_channels["project"] = download_channels["portfolio"]
-download_channels = download_channels[
-    ["project", "channel", "status", "go_live_date", "notes"]
-]
+download_channels = download_channels[["project", "channel", "status", "go_live_date", "notes"]]
 csv = download_channels.to_csv(index=False).encode("utf-8")
 st.download_button(
     "Download channel data as CSV",
@@ -1255,4 +2079,4 @@ st.download_button(
     mime="text/csv",
 )
 
-st.caption("Edit the data blocks at the top of the file to update the dashboard content.")
+st.caption("Executive operational view generated from normalized customer, issue, escalation, risk, and channel records.")
