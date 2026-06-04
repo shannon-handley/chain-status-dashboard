@@ -40,6 +40,7 @@ except ZoneInfoNotFoundError:
 CURRENT_VIEW_LABEL = (
     f"{CURRENT_VIEW_DATE.strftime('%B')} {CURRENT_VIEW_DATE.day}, {CURRENT_VIEW_DATE.year}"
 )
+STATUS_ORDER = ["LIVE", "IN PROGRESS", "NEW"]
 
 # ----------------------------
 # Visual system
@@ -71,6 +72,8 @@ st.markdown(
             --accent-soft: rgba(124, 92, 255, 0.18);
             --live: #3ddc97;
             --live-soft: rgba(61, 220, 151, 0.14);
+            --progress: #7c5cff;
+            --progress-soft: rgba(124, 92, 255, 0.14);
             --new: #f6b451;
             --new-soft: rgba(246, 180, 81, 0.15);
             --issue: #ff6b81;
@@ -336,7 +339,7 @@ st.markdown(
             display: grid;
             justify-items: center;
             gap: 0.45rem;
-            min-width: 82px;
+            min-width: 92px;
         }
 
         .bar {
@@ -354,6 +357,11 @@ st.markdown(
         .bar.live {
             background: var(--live);
             box-shadow: 0 0 18px rgba(61, 220, 151, 0.20);
+        }
+
+        .bar.in-progress {
+            background: var(--progress);
+            box-shadow: 0 0 18px rgba(124, 92, 255, 0.20);
         }
 
         .bar.new {
@@ -579,6 +587,12 @@ st.markdown(
             border: 1px solid rgba(246, 180, 81, 0.24);
         }
 
+        .status-in-progress {
+            color: var(--progress);
+            background: var(--progress-soft);
+            border: 1px solid rgba(124, 92, 255, 0.24);
+        }
+
         .issue-badge {
             color: var(--issue);
             background: var(--issue-soft);
@@ -752,9 +766,9 @@ channels_data = [
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Traveloka", "status": "LIVE", "go_live_date": "2026-03-13", "notes": "Activated with switch partner (13 Mar - PRLGK, 2 Apr - remaining hotels); pending OTA test booking"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Rakuten", "status": "LIVE", "go_live_date": "2026-05-28", "notes": "Activated with switch partner (28MAY-PPSSIN,PRSSIN, 29MAY-PPYGN); pending OTA test booking"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "MG Bedbank", "status": "LIVE", "go_live_date": "2026-05-26", "notes": "Activated with switch partner (26MAY-PRYGN, 29MAY-PPYGN,PRNYT,PRSSIN,PRPGB,PPDAC); ongoing validations and pending switch from OTA on 6 hotels."},
-    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Agoda", "status": "NEW", "go_live_date": "", "notes": "Ongoing testing/validations with Agoda"},
-    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Trip.com", "status": "NEW", "go_live_date": "", "notes": "Ongoing configurations/conversations between Trip.com and PPHG"},
-    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Nuitee", "status": "NEW", "go_live_date": "", "notes": "Ongoing testing/validations with Nuitee"},
+    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Agoda", "status": "IN PROGRESS", "go_live_date": "", "notes": "Ongoing testing/validations with Agoda"},
+    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Trip.com", "status": "IN PROGRESS", "go_live_date": "", "notes": "Ongoing configurations/conversations between Trip.com and PPHG"},
+    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Nuitee", "status": "IN PROGRESS", "go_live_date": "", "notes": "Ongoing testing/validations with Nuitee"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "TA Network", "status": "NEW", "go_live_date": "", "notes": "Pending switch update from OTA, then mapping from PPHG"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Roibos", "status": "NEW", "go_live_date": "", "notes": "Roibos in contact with PPHG regarding contractual details, unable to onboard this channel currently"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Goibibo & MakeMyTrip", "status": "NEW", "go_live_date": "", "notes": "Ongoing configuration work required at OTA end, unable to onboard this channel currently"},
@@ -762,7 +776,6 @@ channels_data = [
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Inntopia", "status": "NEW", "go_live_date": "", "notes": "PPHG advised channel will not be part of this batch."},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Travco", "status": "NEW", "go_live_date": "", "notes": "Pending OTA engagement and mapping from PPHG."},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Dnata", "status": "NEW", "go_live_date": "", "notes": "Ongoing configuration work required at OTA end, unable to onboard this channel currently"},
-    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Meituan", "status": "NEW", "go_live_date": "", "notes": "PPHG advised this channel will go through Derbysoft channel manager"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Bakuun / RateDock", "status": "NEW", "go_live_date": "", "notes": "Ongoing configuration work required at OTA end, unable to onboard this channel currently"},
 ]
 
@@ -893,7 +906,11 @@ def safe_text(value: object) -> str:
 
 def status_badge(status: str) -> str:
     status_value = safe_text(status).upper()
-    status_class = "status-live" if status_value == "LIVE" else "status-new"
+    status_class = {
+        "LIVE": "status-live",
+        "IN PROGRESS": "status-in-progress",
+        "NEW": "status-new",
+    }.get(status_value, "status-new")
     return f'<span class="status-badge {status_class}">{status_value}</span>'
 
 
@@ -963,23 +980,34 @@ def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
     if rows.empty:
         chart_body = '<p class="muted-text" style="padding: 1rem;">No channels match the current filters.</p>'
     else:
+        active_statuses = [
+            status for status in STATUS_ORDER if status in set(rows["status"])
+        ]
         counts = []
         for customer in customers:
             customer_rows = rows[rows["portfolio"] == customer]
-            live = int((customer_rows["status"] == "LIVE").sum())
-            new = int((customer_rows["status"] == "NEW").sum())
-            counts.append({"portfolio": customer, "live": live, "new": new})
+            status_counts = {
+                status: int((customer_rows["status"] == status).sum())
+                for status in active_statuses
+            }
+            counts.append({"portfolio": customer, **status_counts})
 
-        max_count = max(1, max(max(item["live"], item["new"]) for item in counts))
+        max_count = max(
+            1,
+            max(max(item[status] for status in active_statuses) for item in counts),
+        )
         chart_cards = []
         for item in counts:
-            total = item["live"] + item["new"]
+            total = sum(item[status] for status in active_statuses)
+            bars = "".join(
+                bar_markup(status.lower().replace(" ", "-"), status, item[status], max_count)
+                for status in active_statuses
+            )
             chart_cards.append(
                 f"""
                 <article class="portfolio-chart">
                   <div class="bar-stage" aria-label="{safe_text(item["portfolio"])} channel status counts">
-                    {bar_markup("live", "LIVE", item["live"], max_count)}
-                    {bar_markup("new", "NEW", item["new"], max_count)}
+                    {bars}
                   </div>
                   <div class="portfolio-label">
                     <span>{safe_text(item["portfolio"])}</span>
@@ -1135,8 +1163,8 @@ with st.container(border=True):
 
         status_filter = st.multiselect(
             "Status",
-            options=sorted(df_channels["status"].unique()),
-            default=sorted(df_channels["status"].unique()),
+            options=[status for status in STATUS_ORDER if status in set(df_channels["status"])],
+            default=[status for status in STATUS_ORDER if status in set(df_channels["status"])],
         )
 
     with right:
