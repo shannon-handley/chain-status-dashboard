@@ -416,6 +416,31 @@ st.markdown(
             color: var(--paper-text) !important;
         }
 
+        /* Make filter controls readable even when Streamlit changes container wrappers. */
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"],
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div,
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div > div,
+        div[data-testid="stMultiSelect"] [role="combobox"] {
+            background: #f8fafc !important;
+            border-color: #cbd5e1 !important;
+            color: var(--paper-text) !important;
+        }
+
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div {
+            min-height: 2.55rem;
+            box-shadow: 0 10px 22px rgba(6, 14, 28, 0.10) !important;
+        }
+
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] > div:focus-within {
+            border-color: #7c5cff !important;
+            box-shadow: 0 0 0 3px rgba(124, 92, 255, 0.18) !important;
+        }
+
+        div[data-testid="stMultiSelect"] input {
+            color: var(--paper-text) !important;
+            caret-color: var(--paper-text) !important;
+        }
+
         div[data-baseweb="select"] > div:hover,
         div[data-testid="stTextInput"] input:hover {
             border-color: var(--border-strong) !important;
@@ -431,6 +456,11 @@ st.markdown(
         div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stTextInput"] svg {
             color: var(--paper-muted) !important;
             fill: var(--paper-muted) !important;
+        }
+
+        div[data-testid="stMultiSelect"] div[data-baseweb="select"] svg {
+            color: #475569 !important;
+            fill: #475569 !important;
         }
 
         div[data-baseweb="tag"] {
