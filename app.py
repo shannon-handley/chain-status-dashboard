@@ -740,7 +740,7 @@ channels_data = [
     {"portfolio": "Great Wolf", "project": "Expedia", "channel": "Expedia", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "Pilot + batches 1-3 are live. Remaining properties on pause due to extra person rate issue, under review."},
     {"portfolio": "Great Wolf", "project": "HGV", "channel": "HGV", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Channel live, validation in progress by GWR Team."},
     {"portfolio": "Great Wolf", "project": "Google via DerbySoft Meta", "channel": "Google / DerbySoft Meta", "status": "LIVE", "go_live_date": "2026-06-03", "notes": "Channel live, validation in progress by GWR Team."},
-    {"portfolio": "Great Wolf", "project": "Booking.com for NIAGON", "channel": "Booking.com for NIAGON", "status": "LIVE", "go_live_date": "2026-06-02", "notes": "Separate onboarding track; go-live scheduled."},
+    {"portfolio": "Great Wolf", "project": "Booking.com for NIAGON", "channel": "Booking.com for NIAGON", "status": "LIVE", "go_live_date": "2026-06-02", "notes": "Channel live, validation in progress by GWR Team."},
     {"portfolio": "Great Wolf", "project": "GDS", "channel": "GDS", "status": "NEW", "go_live_date": "", "notes": "Separate workstream, planning in progress."},
 
     # Loews
@@ -750,8 +750,8 @@ channels_data = [
     {"portfolio": "Loews", "project": "Booking.com", "channel": "Booking.com", "status": "LIVE", "go_live_date": "2026-05-13", "notes": "Operational; post-production issues remain."},
     {"portfolio": "Loews", "project": "HotelTonight via RateGain", "channel": "HotelTonight via RateGain", "status": "LIVE", "go_live_date": "2026-05-18", "notes": "Operational across all 16 properties."},
     {"portfolio": "Loews", "project": "Hopper", "channel": "Hopper", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Operational across all 16 properties."},
-    {"portfolio": "Loews", "project": "Agoda", "channel": "Agoda", "status": "LIVE", "go_live_date": "2026-05-27", "notes": "Pilot phase; scheduled to go live tomorrow."},
-    {"portfolio": "Loews", "project": "Cendyn (IBE)", "channel": "Cendyn IBE", "status": "NEW", "go_live_date": "2026-06-09", "notes": "Final validation and CSV import/testing in progress."},
+    {"portfolio": "Loews", "project": "Agoda", "channel": "Agoda", "status": "LIVE", "go_live_date": "2026-05-27", "notes": "Operational across all 16 properties."},
+    {"portfolio": "Loews", "project": "Cendyn (IBE)", "channel": "Cendyn IBE", "status": "NEW", "go_live_date": "2026-06-09", "notes": "Go Live delayed to 9 June due to additional configuration / development work required."},
 
     # Pan Pacific
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Dida Travel", "status": "LIVE", "go_live_date": "2026-02-13", "notes": "Activated with switch partner (13 Feb); OTA Test booking confirmed, handed over to support"},
