@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 from base64 import b64encode
+from datetime import datetime
 from html import escape as html_escape
 from pathlib import Path
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pandas as pd
 import streamlit as st
@@ -29,6 +31,15 @@ def asset_data_uri(path: Path) -> str:
 
 
 LOGO_URIS = {name: asset_data_uri(path) for name, path in LOGO_PATHS.items()}
+
+try:
+    CURRENT_VIEW_DATE = datetime.now(ZoneInfo("Australia/Sydney"))
+except ZoneInfoNotFoundError:
+    CURRENT_VIEW_DATE = datetime.now()
+
+CURRENT_VIEW_LABEL = (
+    f"{CURRENT_VIEW_DATE.strftime('%B')} {CURRENT_VIEW_DATE.day}, {CURRENT_VIEW_DATE.year}"
+)
 
 # ----------------------------
 # Visual system
@@ -156,12 +167,10 @@ st.markdown(
         }
 
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            background:
-                linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0.012)),
-                var(--card-bg) !important;
-            border: 1px solid var(--border) !important;
+            background: var(--paper-bg) !important;
+            border: 1px solid var(--paper-border) !important;
             border-radius: var(--radius) !important;
-            box-shadow: var(--shadow);
+            box-shadow: 0 18px 44px rgba(6, 14, 28, 0.24);
             padding: 0 !important;
             overflow: hidden;
         }
@@ -172,6 +181,20 @@ st.markdown(
 
         div[data-testid="stVerticalBlockBorderWrapper"] .stHorizontalBlock {
             padding: 1rem;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] .section-heading {
+            background: var(--paper-bg-soft);
+            border-bottom: 1px solid var(--paper-border);
+            box-shadow: none;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] .section-heading h2 {
+            color: var(--paper-text);
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] .section-heading span {
+            color: var(--paper-muted);
         }
 
         .section-heading {
@@ -372,6 +395,11 @@ st.markdown(
             text-transform: uppercase;
         }
 
+        div[data-testid="stVerticalBlockBorderWrapper"] label,
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stWidgetLabel"] p {
+            color: var(--paper-muted) !important;
+        }
+
         div[data-baseweb="select"] > div,
         div[data-testid="stTextInput"] input {
             background: rgba(255, 255, 255, 0.055) !important;
@@ -379,6 +407,13 @@ st.markdown(
             border-radius: 7px !important;
             color: var(--text-main) !important;
             box-shadow: none !important;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-baseweb="select"] > div,
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stTextInput"] input {
+            background: #ffffff !important;
+            border-color: var(--paper-border) !important;
+            color: var(--paper-text) !important;
         }
 
         div[data-baseweb="select"] > div:hover,
@@ -390,6 +425,12 @@ st.markdown(
         div[data-testid="stTextInput"] svg {
             color: var(--text-muted) !important;
             fill: var(--text-muted) !important;
+        }
+
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-baseweb="select"] svg,
+        div[data-testid="stVerticalBlockBorderWrapper"] div[data-testid="stTextInput"] svg {
+            color: var(--paper-muted) !important;
+            fill: var(--paper-muted) !important;
         }
 
         div[data-baseweb="tag"] {
@@ -621,13 +662,13 @@ st.markdown(
 )
 
 st.html(
-    """
+    f"""
     <div class="app-header">
       <div>
         <h1 class="app-title">Chain Status Dashboard</h1>
         <p class="app-caption">Implementation projects, channel go-live status, and active issue tracking.</p>
       </div>
-      <div class="as-of-pill">Current view: June 2, 2026</div>
+      <div class="as-of-pill">Current view: {CURRENT_VIEW_LABEL}</div>
     </div>
     """
 )
@@ -639,11 +680,11 @@ st.html(
 channels_data = [
     # Great Wolf
     {"portfolio": "Great Wolf", "project": "IBE", "channel": "IBE", "status": "LIVE", "go_live_date": "2026-04-15", "notes": "Finalized and handed over to Support."},
-    {"portfolio": "Great Wolf", "project": "Groupon", "channel": "Groupon", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "All batches migrated; stabilization in progress."},
+    {"portfolio": "Great Wolf", "project": "Groupon", "channel": "Groupon", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "All batches migrated; stabilization in progress. Sporadic booking failures continue and are under investigation by OGTS/Dev."},
     {"portfolio": "Great Wolf", "project": "Expedia", "channel": "Expedia", "status": "LIVE", "go_live_date": "2026-05-07", "notes": "Pilot + batches 1-3 are live. Remaining properties on pause due to extra person rate issue, under review."},
-    {"portfolio": "Great Wolf", "project": "HGV", "channel": "HGV", "status": "NEW", "go_live_date": "", "notes": "Connectivity development finalized; partner delays remain."},
-    {"portfolio": "Great Wolf", "project": "Google via DerbySoft Meta", "channel": "Google / DerbySoft Meta", "status": "NEW", "go_live_date": "", "notes": "Validation in progress by DerbySoft."},
-    {"portfolio": "Great Wolf", "project": "Booking.com for NIAGON", "channel": "Booking.com for NIAGON", "status": "NEW", "go_live_date": "2026-06-01", "notes": "Separate onboarding track; go-live scheduled."},
+    {"portfolio": "Great Wolf", "project": "HGV", "channel": "HGV", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Connectivity development finalized; partner delays remain."},
+    {"portfolio": "Great Wolf", "project": "Google via DerbySoft Meta", "channel": "Google / DerbySoft Meta", "status": "LIVE", "go_live_date": "2026-06-03", "notes": "Validation in progress by DerbySoft."},
+    {"portfolio": "Great Wolf", "project": "Booking.com for NIAGON", "channel": "Booking.com for NIAGON", "status": "LIVE", "go_live_date": "2026-06-02", "notes": "Separate onboarding track; go-live scheduled."},
     {"portfolio": "Great Wolf", "project": "GDS", "channel": "GDS", "status": "NEW", "go_live_date": "", "notes": "Separate workstream, planning in progress."},
 
     # Loews
@@ -1112,7 +1153,7 @@ st.html(render_channel_table(channels_display))
 # Issue tracker
 # ----------------------------
 
-issues_display = df_issues.copy()
+issues_display = df_issues[df_issues["portfolio"].isin(portfolio_filter)].copy()
 issues_display = issues_display.rename(
     columns={
         "portfolio": "Customer",
