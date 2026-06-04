@@ -772,7 +772,7 @@ issues_data = [
         "project": "Groupon",
         "issue_type": "Support / escalation",
         "link_type": "Slack",
-        "link": "",
+        "link": "https://gbu-core.slack.com/archives/C08FAGCS275/p1778279062722849",
         "summary": "Recent booking failovers have been escalated to Oracle Support and are under review.",
     },
     {
