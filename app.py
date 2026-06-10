@@ -1175,35 +1175,119 @@ issues_data = [
     },
     {
         "portfolio": "Loews",
-        "project": "Booking.com",
+        "project": "Deposit Policy Sync",
+        "title": "Block-level deposit policy schedules losing block association during synchronization",
         "issue_type": "Operational issue",
-        "link_type": "JIRA",
-        "link": "",
-        "summary": "Reservations are not consistently interfacing into OPERA; email/contact configuration and reservation notes are being investigated.",
+        "severity": "High",
+        "owner": "",
+        "created_at": "2026-06-04",
+        "impact": "Block-level deposit policy schedules are losing their block association during synchronization.",
+        "escalation_status": "Watch",
+        "next_action": "Assign owner and confirm recovery plan.",
+        "link_type": "Slack",
+        "link": "https://oracle.enterprise.slack.com/archives/C08Q601E2T0/p1780505165622459?thread_ts=1780505165.622459&cid=C08Q601E2T0",
+        "summary": "Block-level deposit policy schedules are losing their block association during synchronization.",
     },
     {
         "portfolio": "Loews",
-        "project": "GDS",
-        "issue_type": "JIRA",
-        "link_type": "JIRA",
-        "link": "",
-        "summary": "Free night promotions on rate codes are not displaying or pricing correctly in GDS/Sabre.",
+        "project": "Booking.com",
+        "title": "Booking.com reservation notes displaying excessive/non-configurable content in OPERA",
+        "issue_type": "Operational issue",
+        "severity": "High",
+        "owner": "",
+        "created_at": "2026-05-23",
+        "impact": "Reservation notes are displaying excessive or non-configurable content in OPERA.",
+        "escalation_status": "Watch",
+        "next_action": "Assign owner and confirm recovery plan.",
+        "link_type": "Slack",
+        "link": "https://oracle.enterprise.slack.com/archives/C08Q601E2T0/p1779482352976449?thread_ts=1779482352.976449&cid=C08Q601E2T0",
+        "summary": "Booking.com reservation notes displaying excessive/non-configurable content in OPERA.",
     },
     {
         "portfolio": "Loews",
-        "project": "GDS",
-        "issue_type": "JIRA",
-        "link_type": "JIRA",
-        "link": "",
-        "summary": "Backfill GDS Line 1 channel description from negotiated rates import file.",
+        "project": "OTA Reservations",
+        "title": "OTA reservations appearing in commission batches prior to processing in OPERA Cloud",
+        "issue_type": "Operational issue",
+        "severity": "High",
+        "owner": "",
+        "created_at": "2026-05-22",
+        "impact": "OTA reservations are appearing in commission batches before they are processed in OPERA Cloud.",
+        "escalation_status": "Watch",
+        "next_action": "Assign owner and confirm recovery plan.",
+        "link_type": "Slack",
+        "link": "https://oracle.enterprise.slack.com/archives/C08Q601E2T0/p1779388329096369?thread_ts=1779388329.096369&cid=C08Q601E2T0",
+        "summary": "OTA reservations are appearing in commission batches prior to processing in OPERA Cloud.",
     },
     {
         "portfolio": "Loews",
-        "project": "GDS",
+        "project": "Transaction Codes",
+        "title": "Enable incl dep/cxl flags on transaction codes in production",
         "issue_type": "Operational issue",
         "link_type": "Slack",
+        "link": "https://oracle.enterprise.slack.com/archives/C08Q601E2T0/p1777406425790119?thread_ts=1777406425.790119&cid=C08Q601E2T0",
+        "severity": "High",
+        "owner": "",
+        "created_at": "2026-04-29",
+        "impact": "Transaction code incl dep/cxl flags need to be enabled in production.",
+        "escalation_status": "Watch",
+        "next_action": "Assign owner and confirm recovery plan.",
+        "summary": "Enable incl dep/cxl flags on transaction codes in prod.",
+    },
+    {
+        "portfolio": "Loews",
+        "project": "ARI Rollover Rates",
+        "title": "$9999 ARI rollover rates",
+        "issue_type": "Operational issue",
+        "severity": "Medium",
+        "owner": "",
+        "impact": "$9999 ARI rollover rates are in progress; no Slack conversation is currently linked.",
+        "escalation_status": "Not Escalated",
+        "next_action": "Assign owner and confirm next action.",
+        "link_type": "Email",
         "link": "",
-        "summary": "Capital One rates are not showing available in Capital One.",
+        "summary": "$9999 ARI Rollover Rates: in the works; no Slack conversations on this.",
+    },
+    {
+        "portfolio": "Loews",
+        "project": "Concur",
+        "title": "Free Parking and Breakfast showing in Concur",
+        "issue_type": "Operational issue",
+        "severity": "Medium",
+        "owner": "",
+        "impact": "Free Parking and Breakfast are showing in Concur; no Slack conversation is currently linked.",
+        "escalation_status": "Not Escalated",
+        "next_action": "Assign owner and confirm next action.",
+        "link_type": "Email",
+        "link": "",
+        "summary": "Free Parking and Breakfast showing in Concur: in the works; no Slack conversations on this.",
+    },
+    {
+        "portfolio": "Loews",
+        "project": "Booking.com",
+        "title": "Booking.com duplicate reservations",
+        "issue_type": "Operational issue",
+        "severity": "Medium",
+        "owner": "",
+        "impact": "Booking.com duplicate reservations are in progress; no Slack conversation is currently linked.",
+        "escalation_status": "Not Escalated",
+        "next_action": "Assign owner and confirm next action.",
+        "link_type": "Email",
+        "link": "",
+        "summary": "Booking.com Duplicate Reservations: in the works; no Slack conversations on this.",
+    },
+    {
+        "portfolio": "Loews",
+        "project": "Agoda",
+        "title": "Agoda price calculation",
+        "issue_type": "Operational issue",
+        "severity": "Medium",
+        "owner": "",
+        "impact": "Agoda price calculation is in progress; no Slack conversation is currently linked.",
+        "escalation_status": "Not Escalated",
+        "next_action": "Assign owner and confirm next action.",
+        "link_type": "Email",
+        "link": "",
+        "summary": "Agoda Price Calculation: in the works; no Slack conversations on this.",
     },
 ]
 
@@ -1322,34 +1406,6 @@ ISSUE_ENRICHMENT = {
         "blocked": True,
         "escalated": True,
     },
-    ("Loews", "Booking.com"): {
-        "severity": "High",
-        "owner": "Oracle Support",
-        "accountable_owner": "Loews Onboarding Team",
-        "support_team": "OPERA Interface Team",
-        "escalation_contact": "Oracle Support",
-        "created_at": "2026-05-13",
-        "due_date": "2026-06-06",
-        "impact": "Reservations are not consistently interfacing into OPERA.",
-        "next_action": "Complete email/contact configuration and reservation-note investigation.",
-        "escalation_status": "Watch",
-        "blocked": False,
-        "escalated": False,
-    },
-    ("Loews", "GDS"): {
-        "severity": "Medium",
-        "owner": "GDS Support",
-        "accountable_owner": "Loews Onboarding Team",
-        "support_team": "Sabre / GDS",
-        "escalation_contact": "Oracle Support",
-        "created_at": "2026-05-15",
-        "due_date": "2026-06-07",
-        "impact": "GDS pricing, promotion, or negotiated-rate display issues may affect partner availability.",
-        "next_action": "Resolve open GDS cases and validate partner display.",
-        "escalation_status": "In Progress",
-        "blocked": False,
-        "escalated": False,
-    },
 }
 
 
@@ -1359,6 +1415,24 @@ def safe_text(value: object) -> str:
     if isinstance(value, float) and pd.isna(value):
         return ""
     return html_escape(str(value), quote=True)
+
+
+def source_value(row: pd.Series, key: str, default: str = "") -> str:
+    value = row.get(key, default)
+    if value is None:
+        return default
+    if isinstance(value, float) and pd.isna(value):
+        return default
+    return str(value).strip()
+
+
+def normalize_severity(value: object, default: str = "Medium") -> str:
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return default
+    cleaned = str(value).strip().replace("!", "").replace("▲", "").replace("●", "")
+    cleaned = cleaned.replace("â–²", "").replace("â—", "")
+    normalized = cleaned.strip().title()
+    return normalized if normalized in SEVERITY_ORDER else default
 
 
 def status_badge(status: str) -> str:
@@ -1443,8 +1517,24 @@ def issue_summary_label(row: pd.Series) -> str:
         return "Expedia extra-person error - Dev Team escalation"
     if customer == "Pan Pacific" and project == "DSW & RSW channels":
         return "DSW & RSW publication gaps - OGTS escalation"
-    if customer == "Loews" and project == "Booking.com":
-        return "Booking.com reservation interface issue"
+    if customer == "Loews":
+        loews_text = f"{project} {title} {summary}".lower()
+        if "deposit policy" in loews_text:
+            return "Deposit policy sync - owner needed"
+        if "reservation notes" in loews_text:
+            return "Booking.com reservation notes"
+        if "duplicate reservations" in loews_text:
+            return "Booking.com duplicate reservations"
+        if "commission batches" in loews_text:
+            return "OTA commission batch timing"
+        if "transaction codes" in loews_text or "dep/cxl" in loews_text:
+            return "Transaction-code flags in production"
+        if "ari rollover" in loews_text:
+            return "$9999 ARI rollover rates"
+        if "concur" in loews_text:
+            return "Concur free parking/breakfast"
+        if "agoda" in loews_text:
+            return "Agoda price calculation"
     if customer == "Loews" and project == "GDS":
         if "Free night" in searchable_summary:
             return "GDS free-night pricing issue"
@@ -1855,35 +1945,63 @@ def normalize_source_records(
             **profile,
             **ISSUE_ENRICHMENT.get((customer, project), {}),
         }
-        severity = defaults.get("severity", "Medium")
-        escalation_status = defaults.get("escalation_status", "In Progress")
+        severity = normalize_severity(source_value(issue, "severity"), defaults.get("severity", "Medium"))
+        escalation_status = (
+            source_value(issue, "escalation_status")
+            or source_value(issue, "escalation")
+            or defaults.get("escalation_status", "In Progress")
+        )
         escalated = bool(defaults.get("escalated", escalation_status == "Escalated"))
         blocked = bool(defaults.get("blocked", severity in {"Critical", "High"}))
-        created_at = defaults.get("created_at", CURRENT_VIEW_DATE.date().isoformat())
-        source_channel = issue.get("link_type", "") or "Manual"
-        source_link = issue.get("link", "")
+        created_at = source_value(
+            issue,
+            "created_at",
+            defaults.get("created_at", CURRENT_VIEW_DATE.date().isoformat()),
+        )
+        updated_at = source_value(
+            issue,
+            "updated_at",
+            defaults.get("updated_at", CURRENT_VIEW_DATE.date().isoformat()),
+        )
+        due_date = source_value(issue, "due_date", defaults.get("due_date", ""))
+        source_channel = (
+            source_value(issue, "source_channel")
+            or source_value(issue, "link_type")
+            or "Manual"
+        )
+        source_link = source_value(issue, "source_link") or source_value(issue, "link")
+        source_label = source_value(issue, "source") or f"{source_channel} issue tracker"
+        owner = source_value(issue, "owner")
+        if owner == "" and pd.isna(issue.get("owner", pd.NA)):
+            owner = defaults.get("owner", defaults.get("accountable_owner", ""))
+        issue_title = source_value(issue, "title") or f"{project}: {issue['issue_type']}"
+        issue_summary = source_value(issue, "summary") or issue_title
+        issue_impact = source_value(issue, "impact") or defaults.get("impact", issue_summary)
+        next_action = source_value(issue, "next_action") or defaults.get(
+            "next_action", "Confirm owner, next action, and due date."
+        )
         issue_record = make_record(
             record_type="issue",
             customer=customer,
             project=project,
-            title=f"{project}: {issue['issue_type']}",
-            description=issue["summary"],
+            title=issue_title,
+            description=issue_summary,
             status="Open",
             severity=severity,
-            owner=defaults.get("owner", defaults.get("accountable_owner", "")),
+            owner=owner,
             accountable_owner=defaults.get("accountable_owner", profile["accountable_owner"]),
             support_team=defaults.get("support_team", profile["support_team"]),
             escalation_contact=defaults.get(
                 "escalation_contact", profile["escalation_contact"]
             ),
-            source=f"{source_channel} issue tracker",
+            source=source_label,
             source_channel=source_channel,
             source_link=source_link,
             created_at=created_at,
-            updated_at=defaults.get("updated_at", CURRENT_VIEW_DATE.date().isoformat()),
-            due_date=defaults.get("due_date", ""),
-            next_action=defaults.get("next_action", "Confirm owner, next action, and due date."),
-            impact=defaults.get("impact", issue["summary"]),
+            updated_at=updated_at,
+            due_date=due_date,
+            next_action=next_action,
+            impact=issue_impact,
             blocked=blocked,
             escalated=escalated,
             duplicate_count=1,
@@ -2399,11 +2517,50 @@ download_channels = df_channels.copy()
 download_channels["project"] = download_channels["portfolio"]
 download_channels = download_channels[["project", "channel", "status", "go_live_date", "notes"]]
 csv = download_channels.to_csv(index=False).encode("utf-8")
-st.download_button(
-    "Download channel data as CSV",
-    data=csv,
-    file_name="channel_status_data.csv",
-    mime="text/csv",
+issue_tracker_download = open_issues[
+    [
+        "severity",
+        "customer",
+        "title",
+        "owner",
+        "age_days",
+        "impact",
+        "escalation_status",
+        "next_action",
+        "source_channel",
+        "source_link",
+    ]
+].copy()
+issue_tracker_download = issue_tracker_download.rename(
+    columns={
+        "severity": "Severity",
+        "customer": "Customer",
+        "title": "Issue",
+        "owner": "Owner",
+        "age_days": "Age Days",
+        "impact": "Impact",
+        "escalation_status": "Escalation",
+        "next_action": "Next Action",
+        "source_channel": "Source",
+        "source_link": "Source Link",
+    }
 )
+issue_csv = issue_tracker_download.to_csv(index=False).encode("utf-8")
+
+download_col1, download_col2 = st.columns(2)
+with download_col1:
+    st.download_button(
+        "Download channel data as CSV",
+        data=csv,
+        file_name="channel_status_data.csv",
+        mime="text/csv",
+    )
+with download_col2:
+    st.download_button(
+        "Download issue tracker as CSV",
+        data=issue_csv,
+        file_name="issue_tracker_data.csv",
+        mime="text/csv",
+    )
 
 st.caption("Executive operational view generated from normalized customer, issue, escalation, risk, and channel records.")
