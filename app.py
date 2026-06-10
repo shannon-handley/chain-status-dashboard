@@ -59,7 +59,6 @@ SECTION_ICONS = {
     "Open Issues & Blockers": "!",
     "Executive Escalations": "▲",
     "Risk Feed": "◌",
-    "Escalation Rules": "≡",
     "Command Filters": "⌕",
 }
 
@@ -1177,14 +1176,6 @@ HEALTH_ORDER = {
     "Attention Needed": 2,
     "Healthy": 1,
 }
-ESCALATION_RULES = [
-    ("Blocked > 3 days", "Escalate when a blocker has no confirmed movement for 3 business days."),
-    ("No owner assigned", "Any record without an accountable owner is immediately flagged."),
-    ("Go-live delay > 2 days", "Missed or moved go-live dates require a named recovery action."),
-    ("Critical issue stalled", "Critical items with no activity are treated as executive escalations."),
-]
-PREVIOUS_SNAPSHOT: dict[str, int] = {}
-
 CUSTOMER_PROFILES = {
     "Great Wolf": {
         "accountable_owner": "GWR Team",
@@ -1881,23 +1872,6 @@ def render_source_cell(row: pd.Series) -> str:
     return label or '<span class="muted-text">Manual</span>'
 
 
-def render_escalation_rules() -> str:
-    cards = "".join(
-        f"""
-        <article class="rule-chip">
-          <strong>{safe_text(title)}</strong>
-          <span>{safe_text(detail)}</span>
-        </article>
-        """
-        for title, detail in ESCALATION_RULES
-    )
-    return (
-        '<section class="section-card">'
-        + section_heading("Escalation Rules", "Thresholds used for executive attention")
-        + f'<div class="rule-grid">{cards}</div></section>'
-    )
-
-
 def render_customer_health(rows: pd.DataFrame) -> str:
     if rows.empty:
         body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
@@ -2203,48 +2177,14 @@ missing_owner_count = int(
     open_operational_records["owner"].fillna("").eq("").sum()
     + open_operational_records["accountable_owner"].fillna("").eq("").sum()
 )
-attention_today = open_operational_records[
-    (open_operational_records["due_date"].apply(parse_date).apply(
-        lambda value: bool(value and value <= CURRENT_VIEW_DATE.date())
-    ))
-    | (open_operational_records["severity"] == "Critical")
-    | open_operational_records["escalated"].fillna(False)
-    | open_operational_records["owner"].fillna("").eq("")
-]
 
-kpis = {
-    "critical_issues": int((open_operational_records["severity"] == "Critical").sum()),
-    "open_escalations": int(len(escalations)),
-    "customers_at_risk": int(
-        health_view["health_state"].isin(["Escalated", "At Risk"]).sum()
-    ),
-    "attention_today": int(len(attention_today)),
-    "channels_live": int((customer_scope_channels["status"] == "LIVE").sum()),
-    "customers_healthy": int((health_view["health_state"] == "Healthy").sum()),
-}
-
-metric_specs = [
-    ("Critical issues", "critical_issues"),
-    ("Open escalations", "open_escalations"),
-    ("Customers at risk", "customers_at_risk"),
-    ("Needs action today", "attention_today"),
-    ("Channels live", "channels_live"),
-    ("Customers healthy", "customers_healthy"),
-]
-
-metric_cols = st.columns(len(metric_specs))
-for col, (label, key) in zip(metric_cols, metric_specs):
-    value = kpis[key]
-    previous = PREVIOUS_SNAPSHOT.get(key)
-    delta = None if previous is None else value - previous
-    col.metric(label, value, delta=delta)
+st.html(render_completion_cards(completion_rows))
+st.html(render_status_chart(filtered_channels, overview_customers))
 
 if missing_owner_count:
     st.warning(
         f"{missing_owner_count} operational ownership field(s) are missing. Assign an owner before executive review."
     )
-
-st.html(render_escalation_rules())
 
 with st.container(border=True):
     st.html(section_heading("Command Filters", "Filter customers, severity, ownership, source, and channel status"))
@@ -2261,8 +2201,6 @@ with st.container(border=True):
         st.multiselect("Source Channel", source_channel_options, key="source_channel_filter")
         st.text_input("Search customer / issue / note / channel", key="command_search")
 
-st.html(render_completion_cards(completion_rows))
-st.html(render_status_chart(filtered_channels, overview_customers))
 st.html(render_customer_health(health_view))
 st.html(render_open_issues(open_issues))
 st.html(render_escalations(escalations))
