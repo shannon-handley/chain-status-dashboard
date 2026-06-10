@@ -49,6 +49,12 @@ HEALTH_SYMBOLS = {
     "Attention Needed": "●",
     "At Risk": "▲",
     "Escalated": "!",
+    "Delayed": "",
+}
+PROJECT_STATUS_OVERRIDES = {
+    "Great Wolf": ("Escalated", "!"),
+    "Loews": ("Escalated", "!"),
+    "Pan Pacific": ("Delayed", ""),
 }
 SECTION_ICONS = {
     "Project Completion": "▣",
@@ -778,7 +784,8 @@ st.markdown(
         }
 
         .severity-high,
-        .health-at-risk {
+        .health-at-risk,
+        .health-delayed {
             color: #ea580c;
             background: rgba(234, 88, 12, 0.13);
             border: 1px solid rgba(234, 88, 12, 0.28);
@@ -1506,17 +1513,19 @@ def render_completion_cards(
             remaining = int(row.total_channels - row.live_channels)
             health = health_lookup.get(row.portfolio)
             health_state = getattr(health, "health_state", "Attention Needed")
-            health_class = f"health-{str(health_state).lower().replace(' ', '-')}"
-            health_symbol = HEALTH_SYMBOLS.get(health_state, "•")
+            display_state, display_symbol = PROJECT_STATUS_OVERRIDES.get(
+                row.portfolio,
+                (health_state, HEALTH_SYMBOLS.get(health_state, "•")),
+            )
+            display_class = f"health-{str(display_state).lower().replace(' ', '-')}"
+            symbol_html = (
+                f'<span class="badge-symbol">{safe_text(display_symbol)}</span>'
+                if display_symbol
+                else ""
+            )
             issue_count = int(len(completion_issue_records(records, row.portfolio)))
             issue_summary = customer_issue_summary(records, row.portfolio)
             logo_uri = LOGO_URIS.get(row.portfolio, "")
-            if remaining == 0:
-                status_label = "Complete"
-            elif int(row.in_progress_channels) > 0:
-                status_label = "In progress"
-            else:
-                status_label = "Action needed"
             selected_class = " selected" if row.portfolio == selected_customer else ""
             customer_url = f"?customer={quote(row.portfolio)}"
             logo_html = (
@@ -1534,8 +1543,8 @@ def render_completion_cards(
                       <div>
                         <div class="completion-name">{safe_text(row.portfolio)}</div>
                         <div class="completion-status">
-                          <span class="status-dot"></span>{safe_text(status_label)}
-                          <span class="status-badge {health_class}"><span class="badge-symbol">{safe_text(health_symbol)}</span>{safe_text(health_state)}</span>
+                          <span class="status-dot"></span>
+                          <span class="status-badge {display_class}">{symbol_html}{safe_text(str(display_state).upper())}</span>
                         </div>
                       </div>
                     </div>
