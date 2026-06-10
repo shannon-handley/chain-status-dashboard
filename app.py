@@ -1412,6 +1412,71 @@ def build_completion_rows(channels: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
+def completion_issue_records(records: pd.DataFrame, customer: str) -> pd.DataFrame:
+    if records.empty:
+        return pd.DataFrame()
+    return records[
+        (records["customer"] == customer)
+        & records["record_type"].isin(["issue", "risk_signal"])
+    ].sort_values(["risk_score", "age_days"], ascending=False)
+
+
+def issue_summary_label(row: pd.Series) -> str:
+    customer = str(row.get("customer", ""))
+    project = str(row.get("project", ""))
+    title = str(row.get("title", ""))
+    status = str(row.get("status", ""))
+    description = str(row.get("description", ""))
+    summary = str(row.get("impact", "") or description)
+    searchable_summary = f"{summary} {description}"
+
+    if customer == "Great Wolf" and project == "Groupon":
+        return "Groupon booking failure - OGTS escalation"
+    if customer == "Great Wolf" and project == "Expedia":
+        return "Expedia extra-person error - Dev Team escalation"
+    if customer == "Pan Pacific" and project == "DSW & RSW channels":
+        return "DSW & RSW publication gaps - OGTS escalation"
+    if customer == "Loews" and project == "Booking.com":
+        return "Booking.com reservation interface issue"
+    if customer == "Loews" and project == "GDS":
+        if "Free night" in searchable_summary:
+            return "GDS free-night pricing issue"
+        if "Backfill" in searchable_summary:
+            return "GDS negotiated-rate backfill"
+        if "Capital One" in searchable_summary:
+            return "Capital One rate availability"
+        return "GDS display/pricing issue"
+
+    if project == "Channel Status":
+        channels = description.split(":", 1)[0].strip()
+        if status == "IN PROGRESS":
+            return f"{channels} - in progress"
+        if status == "NEW":
+            return f"{channels} - still to onboard"
+        return f"{channels} - follow-up needed"
+
+    return title or project or "Issue requires follow-up"
+
+
+def customer_issue_summary(records: pd.DataFrame, customer: str, max_items: int = 4) -> str:
+    customer_issues = completion_issue_records(records, customer)
+    if customer_issues.empty:
+        return "No tracked issues."
+
+    labels = []
+    for _, issue in customer_issues.iterrows():
+        label = issue_summary_label(issue)
+        if label not in labels:
+            labels.append(label)
+
+    visible_labels = labels[:max_items]
+    remainder = len(labels) - len(visible_labels)
+    summary = " / ".join(visible_labels)
+    if remainder > 0:
+        summary += f" / +{remainder} more"
+    return summary
+
+
 def query_customer(customer_options: list[str]) -> str:
     try:
         raw_value = st.query_params.get("customer", "")
@@ -1423,7 +1488,10 @@ def query_customer(customer_options: list[str]) -> str:
 
 
 def render_completion_cards(
-    rows: pd.DataFrame, health_rows: pd.DataFrame, selected_customer: str = ""
+    rows: pd.DataFrame,
+    health_rows: pd.DataFrame,
+    records: pd.DataFrame,
+    selected_customer: str = "",
 ) -> str:
     if rows.empty:
         body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
@@ -1440,11 +1508,8 @@ def render_completion_cards(
             health_state = getattr(health, "health_state", "Attention Needed")
             health_class = f"health-{str(health_state).lower().replace(' ', '-')}"
             health_symbol = HEALTH_SYMBOLS.get(health_state, "•")
-            blocked_count = int(getattr(health, "blocked_count", row.new_channels))
-            milestone = getattr(health, "next_milestone", "")
-            target_date = getattr(health, "target_date", "")
-            owner = getattr(health, "owner", "")
-            last_updated = getattr(health, "last_updated", "")
+            issue_count = int(len(completion_issue_records(records, row.portfolio)))
+            issue_summary = customer_issue_summary(records, row.portfolio)
             logo_uri = LOGO_URIS.get(row.portfolio, "")
             if remaining == 0:
                 status_label = "Complete"
@@ -1484,13 +1549,11 @@ def render_completion_cards(
                     <span>{remaining} remaining</span>
                   </div>
                   <div class="completion-health-grid">
-                    <span class="completion-health-stat"><strong>{int(row.live_channels)}</strong><span>Live</span></span>
-                    <span class="completion-health-stat"><strong>{int(row.in_progress_channels)}</strong><span>In progress</span></span>
-                    <span class="completion-health-stat"><strong>{blocked_count}</strong><span>Blocked</span></span>
+                    <span class="completion-health-stat"><strong>{int(row.live_channels)}/{int(row.total_channels)}</strong><span>Live</span></span>
+                    <span class="completion-health-stat"><strong>{remaining}</strong><span>In progress</span></span>
+                    <span class="completion-health-stat"><strong>{issue_count}</strong><span>Issues</span></span>
                   </div>
-                  <p class="completion-detail"><strong>Milestone:</strong> {safe_text(milestone)}</p>
-                  <p class="completion-detail"><strong>Target:</strong> {safe_text(target_date)} | <strong>Owner:</strong> {safe_text(owner)}</p>
-                  <p class="completion-detail">Updated {safe_text(last_updated)}</p>
+                  <p class="completion-detail"><strong>Issue Summary:</strong> {safe_text(issue_summary)}</p>
                 </a>
                 """
             )
@@ -1509,7 +1572,7 @@ def render_completion_cards(
 
     return (
         '<section class="section-card">'
-        + section_heading("Project Completion", "Live progress, health, owner, and next milestone")
+        + section_heading("Project Completion", "Live channels, in-progress channels, and tracked issues")
         + body
         + "</section>"
     )
@@ -2290,7 +2353,7 @@ missing_owner_count = int(
     + open_operational_records["accountable_owner"].fillna("").eq("").sum()
 )
 
-st.html(render_completion_cards(completion_rows, health_df, focused_customer))
+st.html(render_completion_cards(completion_rows, health_df, records_df, focused_customer))
 st.html(render_status_chart(filtered_channels, overview_customers))
 
 if missing_owner_count:
