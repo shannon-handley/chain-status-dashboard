@@ -1101,7 +1101,7 @@ channels_data = [
     {"portfolio": "Loews", "project": "HotelTonight via RateGain", "channel": "HotelTonight via RateGain", "status": "LIVE", "go_live_date": "2026-05-18", "notes": "Operational across all 16 properties."},
     {"portfolio": "Loews", "project": "Hopper", "channel": "Hopper", "status": "LIVE", "go_live_date": "2026-05-20", "notes": "Operational across all 16 properties."},
     {"portfolio": "Loews", "project": "Agoda", "channel": "Agoda", "status": "LIVE", "go_live_date": "2026-05-27", "notes": "Operational across all 16 properties."},
-    {"portfolio": "Loews", "project": "Cendyn (IBE)", "channel": "Cendyn IBE", "status": "NEW", "go_live_date": "2026-06-09", "notes": "Go Live delayed to 9 June due to additional configuration / development work required."},
+    {"portfolio": "Loews", "project": "Cendyn (IBE)", "channel": "Cendyn IBE", "status": "LIVE", "go_live_date": "2026-06-09", "notes": "Live as of 9 June 2026 after additional configuration / development work."},
 
     # Pan Pacific
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Dida Travel", "status": "LIVE", "go_live_date": "2026-02-13", "notes": "Activated with switch partner (13 Feb); OTA Test booking confirmed, handed over to support"},
@@ -1260,7 +1260,7 @@ CUSTOMER_PROFILES = {
         "accountable_owner": "Loews Onboarding Team",
         "support_team": "Distribution Engineering",
         "escalation_contact": "Oracle Support",
-        "next_milestone": "Cendyn IBE go-live recovery",
+        "next_milestone": "Post-go-live validation and open issue follow-up",
         "target_date": "2026-06-09",
     },
     "Pan Pacific": {
