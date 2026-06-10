@@ -4,6 +4,7 @@ from base64 import b64encode
 from datetime import datetime
 from html import escape as html_escape
 from pathlib import Path
+from urllib.parse import quote
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pandas as pd
@@ -56,10 +57,10 @@ SECTION_ICONS = {
     "Upcoming Chain Migrations": "↗",
     "Customer Health": "◎",
     "Ownership Matrix": "◇",
+    "Issue Tracker": "!",
     "Open Issues & Blockers": "!",
     "Executive Escalations": "▲",
     "Risk Feed": "◌",
-    "Command Filters": "⌕",
 }
 
 # ----------------------------
@@ -273,6 +274,7 @@ st.markdown(
         }
 
         .completion-card {
+            display: block;
             border: 1px solid var(--paper-border);
             border-radius: var(--radius);
             background:
@@ -281,6 +283,19 @@ st.markdown(
             padding: 0.9rem;
             box-shadow: 0 14px 30px rgba(6, 14, 28, 0.20);
             border-top: 4px solid var(--accent-2);
+            text-decoration: none;
+            transition: transform 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
+        }
+
+        .completion-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(56, 189, 248, 0.55);
+            box-shadow: 0 18px 38px rgba(6, 14, 28, 0.28);
+        }
+
+        .completion-card.selected {
+            border-color: rgba(124, 92, 255, 0.62);
+            box-shadow: 0 0 0 2px rgba(124, 92, 255, 0.18), 0 18px 38px rgba(6, 14, 28, 0.26);
         }
 
         .completion-top {
@@ -331,6 +346,11 @@ st.markdown(
             text-transform: uppercase;
         }
 
+        .completion-status .status-badge {
+            padding: 0.12rem 0.42rem;
+            font-size: 0.68rem;
+        }
+
         .completion-status .status-dot {
             width: 0.5rem;
             height: 0.5rem;
@@ -369,6 +389,58 @@ st.markdown(
             display: inline-flex;
             align-items: center;
             gap: 0.25rem;
+        }
+
+        .completion-health-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.55rem;
+            margin: 0.75rem 0 0.35rem;
+        }
+
+        .completion-health-stat {
+            display: grid;
+            gap: 0.12rem;
+        }
+
+        .completion-health-stat strong {
+            color: var(--paper-text);
+            font-size: 1rem;
+        }
+
+        .completion-health-stat span {
+            color: var(--paper-muted);
+            font-size: 0.66rem;
+            font-weight: 800;
+            text-transform: uppercase;
+        }
+
+        .completion-detail {
+            margin: 0.45rem 0 0;
+            color: var(--paper-muted);
+            font-size: 0.78rem;
+            line-height: 1.42;
+        }
+
+        .completion-detail strong {
+            color: #475569;
+        }
+
+        .selection-note {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            padding: 0 1rem 1rem;
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            font-weight: 680;
+        }
+
+        .selection-note a {
+            color: #d7efff;
+            text-decoration: none;
+            border-bottom: 1px solid rgba(56, 189, 248, 0.45);
         }
 
         /* === HTML status chart, matched to the local Codex dashboard. === */
@@ -1340,14 +1412,39 @@ def build_completion_rows(channels: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def render_completion_cards(rows: pd.DataFrame) -> str:
+def query_customer(customer_options: list[str]) -> str:
+    try:
+        raw_value = st.query_params.get("customer", "")
+    except Exception:
+        raw_value = ""
+    if isinstance(raw_value, list):
+        raw_value = raw_value[0] if raw_value else ""
+    return raw_value if raw_value in customer_options else ""
+
+
+def render_completion_cards(
+    rows: pd.DataFrame, health_rows: pd.DataFrame, selected_customer: str = ""
+) -> str:
     if rows.empty:
         body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
     else:
+        health_lookup = {
+            row.customer: row
+            for row in health_rows.itertuples(index=False)
+        }
         cards = []
         for row in rows.itertuples(index=False):
             percent = int(round(float(row.completion) * 100))
             remaining = int(row.total_channels - row.live_channels)
+            health = health_lookup.get(row.portfolio)
+            health_state = getattr(health, "health_state", "Attention Needed")
+            health_class = f"health-{str(health_state).lower().replace(' ', '-')}"
+            health_symbol = HEALTH_SYMBOLS.get(health_state, "•")
+            blocked_count = int(getattr(health, "blocked_count", row.new_channels))
+            milestone = getattr(health, "next_milestone", "")
+            target_date = getattr(health, "target_date", "")
+            owner = getattr(health, "owner", "")
+            last_updated = getattr(health, "last_updated", "")
             logo_uri = LOGO_URIS.get(row.portfolio, "")
             if remaining == 0:
                 status_label = "Complete"
@@ -1355,6 +1452,8 @@ def render_completion_cards(rows: pd.DataFrame) -> str:
                 status_label = "In progress"
             else:
                 status_label = "Action needed"
+            selected_class = " selected" if row.portfolio == selected_customer else ""
+            customer_url = f"?customer={quote(row.portfolio)}"
             logo_html = (
                 f'<img class="completion-logo" src="{safe_text(logo_uri)}" '
                 f'alt="{safe_text(row.portfolio)} logo">'
@@ -1363,13 +1462,16 @@ def render_completion_cards(rows: pd.DataFrame) -> str:
             )
             cards.append(
                 f"""
-                <article class="completion-card">
+                <a class="completion-card{selected_class}" href="{safe_text(customer_url)}" aria-label="Show {safe_text(row.portfolio)} summary">
                   <div class="completion-top">
                     <div class="completion-brand">
                       {logo_html}
                       <div>
                         <div class="completion-name">{safe_text(row.portfolio)}</div>
-                        <div class="completion-status"><span class="status-dot"></span>{safe_text(status_label)}</div>
+                        <div class="completion-status">
+                          <span class="status-dot"></span>{safe_text(status_label)}
+                          <span class="status-badge {health_class}"><span class="badge-symbol">{safe_text(health_symbol)}</span>{safe_text(health_state)}</span>
+                        </div>
                       </div>
                     </div>
                     <span class="completion-percent">{percent}%</span>
@@ -1381,14 +1483,33 @@ def render_completion_cards(rows: pd.DataFrame) -> str:
                     <span>{safe_text(STATUS_SYMBOLS["LIVE"])} {int(row.live_channels)} of {int(row.total_channels)} LIVE</span>
                     <span>{remaining} remaining</span>
                   </div>
-                </article>
+                  <div class="completion-health-grid">
+                    <span class="completion-health-stat"><strong>{int(row.live_channels)}</strong><span>Live</span></span>
+                    <span class="completion-health-stat"><strong>{int(row.in_progress_channels)}</strong><span>In progress</span></span>
+                    <span class="completion-health-stat"><strong>{blocked_count}</strong><span>Blocked</span></span>
+                  </div>
+                  <p class="completion-detail"><strong>Milestone:</strong> {safe_text(milestone)}</p>
+                  <p class="completion-detail"><strong>Target:</strong> {safe_text(target_date)} | <strong>Owner:</strong> {safe_text(owner)}</p>
+                  <p class="completion-detail">Updated {safe_text(last_updated)}</p>
+                </a>
                 """
             )
-        body = '<div class="completion-grid">' + "".join(cards) + "</div>"
+        focus_message = (
+            f"Showing issue tracker and channel status for {safe_text(selected_customer)}."
+            if selected_customer
+            else "Click a customer card to focus the issue tracker and channel status."
+        )
+        clear_link = '<a href="?">Show all customers</a>' if selected_customer else ""
+        body = (
+            '<div class="completion-grid">'
+            + "".join(cards)
+            + "</div>"
+            + f'<div class="selection-note"><span>{focus_message}</span>{clear_link}</div>'
+        )
 
     return (
         '<section class="section-card">'
-        + section_heading("Project Completion", "Live channel progress by customer")
+        + section_heading("Project Completion", "Live progress, health, owner, and next milestone")
         + body
         + "</section>"
     )
@@ -1460,7 +1581,7 @@ def render_status_chart(rows: pd.DataFrame, customers: list[str]) -> str:
     )
 
 
-def render_channel_table(rows: pd.DataFrame) -> str:
+def render_channel_table(rows: pd.DataFrame, customer_focus: str = "") -> str:
     if rows.empty:
         body = '<tr><td colspan="5" class="muted-text">No channels match the current filters.</td></tr>'
     else:
@@ -1479,9 +1600,14 @@ def render_channel_table(rows: pd.DataFrame) -> str:
             )
         body = "".join(row_html)
 
+    detail = (
+        f"{len(rows)} visible channels for {customer_focus}"
+        if customer_focus
+        else f"{len(rows)} visible channels"
+    )
     return (
         '<section class="section-card">'
-        + section_heading("Channel Status", f"{len(rows)} visible channels")
+        + section_heading("Channel Status", detail)
         + '<div class="table-wrap"><table class="styled-table">'
         "<thead><tr>"
         "<th>Project</th><th>Channel</th><th>Status</th><th>Live / Proposed Go-Live</th><th>Notes</th>"
@@ -1939,7 +2065,7 @@ def render_ownership_matrix(rows: pd.DataFrame) -> str:
     )
 
 
-def render_open_issues(rows: pd.DataFrame) -> str:
+def render_open_issues(rows: pd.DataFrame, customer_focus: str = "") -> str:
     if rows.empty:
         body = '<tr><td colspan="9" class="muted-text">No open issues or blockers match filters.</td></tr>'
         critical_note = ""
@@ -1968,9 +2094,14 @@ def render_open_issues(rows: pd.DataFrame) -> str:
             """
             for _, row in rows.iterrows()
         )
+    detail = (
+        f"{len(rows)} prioritized issue(s) for {customer_focus}"
+        if customer_focus
+        else f"{len(rows)} prioritized issue(s)"
+    )
     return (
         '<section class="section-card">'
-        + section_heading("Open Issues & Blockers", f"{len(rows)} prioritized operational records")
+        + section_heading("Issue Tracker", detail)
         + critical_note
         + '<div class="table-wrap"><table class="styled-table"><thead><tr>'
         '<th>Severity</th><th>Customer</th><th>Issue</th><th>Owner</th><th>Age</th><th>Impact</th><th>Escalation</th><th>Next Action</th><th>Source</th>'
@@ -2077,34 +2208,15 @@ health_options = [
     if health in set(health_df["health_state"])
 ]
 
-
-def sync_multiselect_state(key: str, options: list[str], default: list[str]) -> None:
-    if key not in st.session_state:
-        st.session_state[key] = default
-    else:
-        st.session_state[key] = [value for value in st.session_state[key] if value in options]
-        if not st.session_state[key] and default:
-            st.session_state[key] = default
-
-
-sync_multiselect_state("customer_filter", customer_options, customer_options)
-sync_multiselect_state("status_filter", status_options, status_options)
-sync_multiselect_state("severity_filter", severity_options, severity_options)
-sync_multiselect_state("owner_filter", owner_options, owner_options)
-sync_multiselect_state("escalation_filter", escalation_options, escalation_options)
-sync_multiselect_state("source_channel_filter", source_channel_options, source_channel_options)
-sync_multiselect_state("health_filter", health_options, health_options)
-if "command_search" not in st.session_state:
-    st.session_state["command_search"] = ""
-
-selected_customers = st.session_state["customer_filter"]
-selected_statuses = st.session_state["status_filter"]
-selected_severities = st.session_state["severity_filter"]
-selected_owners = st.session_state["owner_filter"]
-selected_escalations = st.session_state["escalation_filter"]
-selected_source_channels = st.session_state["source_channel_filter"]
-selected_health_states = st.session_state["health_filter"]
-search_text = st.session_state["command_search"].strip()
+focused_customer = query_customer(customer_options)
+selected_customers = [focused_customer] if focused_customer else customer_options
+selected_statuses = status_options
+selected_severities = severity_options
+selected_owners = owner_options
+selected_escalations = escalation_options
+selected_source_channels = source_channel_options
+selected_health_states = health_options
+search_text = ""
 
 customer_scope_channels = df_channels[df_channels["portfolio"].isin(selected_customers)].copy()
 customer_scope_records = records_df[records_df["customer"].isin(selected_customers)].copy()
@@ -2160,7 +2272,7 @@ overview_customers = [
     for customer in selected_customers
     if customer in set(customer_scope_channels["portfolio"])
 ]
-completion_rows = build_completion_rows(customer_scope_channels)
+completion_rows = build_completion_rows(df_channels)
 
 open_operational_records = filtered_records[
     filtered_records["record_type"].isin(["issue", "risk_signal", "escalation"])
@@ -2178,7 +2290,7 @@ missing_owner_count = int(
     + open_operational_records["accountable_owner"].fillna("").eq("").sum()
 )
 
-st.html(render_completion_cards(completion_rows))
+st.html(render_completion_cards(completion_rows, health_df, focused_customer))
 st.html(render_status_chart(filtered_channels, overview_customers))
 
 if missing_owner_count:
@@ -2186,90 +2298,7 @@ if missing_owner_count:
         f"{missing_owner_count} operational ownership field(s) are missing. Assign an owner before executive review."
     )
 
-with st.container(border=True):
-    st.html(section_heading("Command Filters", "Filter customers, severity, ownership, source, and channel status"))
-    f1, f2, f3 = st.columns(3)
-    with f1:
-        st.multiselect("Customer", customer_options, key="customer_filter")
-        st.multiselect("Channel Status", status_options, key="status_filter")
-        st.multiselect("Health State", health_options, key="health_filter")
-    with f2:
-        st.multiselect("Severity", severity_options, key="severity_filter")
-        st.multiselect("Owner", owner_options, key="owner_filter")
-    with f3:
-        st.multiselect("Escalation Status", escalation_options, key="escalation_filter")
-        st.multiselect("Source Channel", source_channel_options, key="source_channel_filter")
-        st.text_input("Search customer / issue / note / channel", key="command_search")
-
-st.html(render_customer_health(health_view))
-st.html(render_open_issues(open_issues))
-st.html(render_escalations(escalations))
-st.html(render_ownership_matrix(health_view))
-st.html(render_risk_feed(risk_feed))
-
-with st.expander("Add manual risk, blocker, owner update, or escalation", expanded=False):
-    with st.form("manual_operational_record", clear_on_submit=True):
-        c1, c2, c3 = st.columns(3)
-        with c1:
-            manual_type_label = st.selectbox(
-                "Record type",
-                ["Risk signal", "Issue / blocker", "Escalation"],
-            )
-            manual_customer = st.selectbox("Customer", customer_options)
-            manual_severity = st.selectbox("Severity", ["Critical", "High", "Medium", "Low"])
-        with c2:
-            manual_owner = st.text_input("Accountable owner")
-            manual_support = st.text_input("Supporting team")
-            manual_escalation_contact = st.text_input("Escalation contact")
-        with c3:
-            manual_source = st.selectbox("Source channel", ["Manual", "Slack", "Email", "JIRA"])
-            manual_due_date = st.date_input("Due date", value=CURRENT_VIEW_DATE.date())
-            manual_link = st.text_input("Source link")
-
-        manual_title = st.text_input("Title")
-        manual_description = st.text_area("Signal / issue summary")
-        manual_impact = st.text_area("Impact")
-        manual_next_action = st.text_input("Next action")
-
-        submitted = st.form_submit_button("Add to operational feed")
-        if submitted:
-            record_type = {
-                "Risk signal": "risk_signal",
-                "Issue / blocker": "issue",
-                "Escalation": "escalation",
-            }[manual_type_label]
-            if not manual_title.strip():
-                st.error("Add a title before submitting the record.")
-            else:
-                manual_record = make_record(
-                    record_id=f"manual-{len(st.session_state['manual_records']) + 1}-{int(datetime.now().timestamp())}",
-                    record_type=record_type,
-                    customer=manual_customer,
-                    project="Manual input",
-                    title=manual_title.strip(),
-                    description=manual_description.strip(),
-                    status="Escalated" if record_type == "escalation" else "Open",
-                    severity=manual_severity,
-                    owner=manual_owner.strip(),
-                    accountable_owner=manual_owner.strip(),
-                    support_team=manual_support.strip(),
-                    escalation_contact=manual_escalation_contact.strip(),
-                    source="Manual operator input",
-                    source_channel=manual_source,
-                    source_link=manual_link.strip(),
-                    created_at=CURRENT_VIEW_DATE.date().isoformat(),
-                    updated_at=CURRENT_VIEW_DATE.date().isoformat(),
-                    due_date=manual_due_date.isoformat(),
-                    next_action=manual_next_action.strip(),
-                    impact=manual_impact.strip(),
-                    blocked=record_type in {"issue", "escalation"},
-                    escalated=record_type == "escalation",
-                    duplicate_count=1,
-                    last_activity_at=CURRENT_VIEW_DATE.date().isoformat(),
-                    escalation_status="Escalated" if record_type == "escalation" else "Watch",
-                )
-                st.session_state["manual_records"].append(manual_record)
-                st.rerun()
+st.html(render_open_issues(open_issues, focused_customer))
 
 # ----------------------------
 # Detailed channel table
@@ -2291,7 +2320,7 @@ channels_display = channels_display.rename(
     }
 )
 
-st.html(render_channel_table(channels_display))
+st.html(render_channel_table(channels_display, focused_customer))
 st.html(render_upcoming_cards(df_upcoming_chains))
 
 download_channels = df_channels.copy()
