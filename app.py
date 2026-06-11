@@ -4,7 +4,7 @@ from base64 import b64encode
 from datetime import datetime
 from html import escape as html_escape
 from pathlib import Path
-from urllib.parse import quote
+from urllib.parse import parse_qs, quote, urlparse
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import pandas as pd
@@ -735,6 +735,22 @@ st.markdown(
             background: #f4f7ff;
         }
 
+        .age-cell strong {
+            display: block;
+            color: var(--paper-text);
+            font-weight: 800;
+            line-height: 1.2;
+        }
+
+        .age-cell span {
+            display: block;
+            color: #71819a;
+            font-size: 0.72rem;
+            line-height: 1.25;
+            margin-top: 0.15rem;
+            white-space: nowrap;
+        }
+
         .status-badge,
         .link-badge,
         .issue-badge {
@@ -1415,6 +1431,34 @@ def normalize_severity(value: object, default: str = "Medium") -> str:
     normalized = cleaned.strip().title()
     return normalized if normalized in SEVERITY_ORDER else default
 
+def slack_message_ts_from_url(url: object) -> str:
+    text = str(url or "").strip()
+    if "slack.com" not in text:
+        return ""
+    parsed = urlparse(text)
+    query_ts = parse_qs(parsed.query).get("thread_ts", [""])[0]
+    if query_ts:
+        return query_ts
+    for part in parsed.path.split("/"):
+        if part.startswith("p") and part[1:].isdigit():
+            digits = part[1:]
+            if len(digits) > 6:
+                return f"{digits[:-6]}.{digits[-6:]}"
+            return digits
+    return ""
+
+
+def slack_created_date_from_url(url: object) -> str:
+    message_ts = slack_message_ts_from_url(url)
+    if not message_ts:
+        return ""
+    try:
+        timestamp = float(message_ts)
+    except ValueError:
+        return ""
+    created_at = datetime.fromtimestamp(timestamp, tz=CURRENT_VIEW_DATE.tzinfo)
+    return created_at.date().isoformat()
+
 
 def status_badge(status: str) -> str:
     status_value = safe_text(status).upper()
@@ -1952,6 +1996,9 @@ def normalize_source_records(
         )
         source_link = source_value(issue, "source_link") or source_value(issue, "link")
         source_label = source_value(issue, "source") or f"{source_channel} issue tracker"
+        slack_created_at = slack_created_date_from_url(source_link)
+        if slack_created_at:
+            created_at = slack_created_at
         owner = source_value(issue, "owner")
         if owner == "" and pd.isna(issue.get("owner", pd.NA)):
             owner = defaults.get("owner", defaults.get("accountable_owner", ""))
@@ -2175,6 +2222,13 @@ def render_source_cell(row: pd.Series) -> str:
     return label or '<span class="muted-text">Manual</span>'
 
 
+def render_age_cell(row: pd.Series) -> str:
+    age_days = int(row.get("age_days") or 0)
+    created_at = safe_text(row.get("created_at", ""))
+    created_html = f"<span>since {created_at}</span>" if created_at else ""
+    return f'<div class="age-cell"><strong>{age_days} days</strong>{created_html}</div>'
+
+
 def render_customer_health(rows: pd.DataFrame) -> str:
     if rows.empty:
         body = '<p class="muted-text" style="padding:1rem;">No customers match the active filters.</p>'
@@ -2262,7 +2316,7 @@ def render_open_issues(rows: pd.DataFrame, customer_focus: str = "") -> str:
               <td>{safe_text(row["customer"])}</td>
               <td>{safe_text(row["title"])}</td>
               <td>{owner_cell(row["owner"])}</td>
-              <td>{int(row["age_days"])}</td>
+              <td>{render_age_cell(row)}</td>
               <td>{safe_text(row["impact"])}</td>
               <td>{safe_text(row["escalation_status"])}</td>
               <td>{safe_text(row["next_action"])}</td>
@@ -2510,6 +2564,7 @@ issue_tracker_download = open_issues[
         "customer",
         "title",
         "owner",
+        "created_at",
         "age_days",
         "impact",
         "escalation_status",
@@ -2524,6 +2579,7 @@ issue_tracker_download = issue_tracker_download.rename(
         "customer": "Customer",
         "title": "Issue",
         "owner": "Owner",
+        "created_at": "Created At",
         "age_days": "Age Days",
         "impact": "Impact",
         "escalation_status": "Escalation",
