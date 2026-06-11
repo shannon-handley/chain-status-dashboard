@@ -1386,7 +1386,7 @@ ISSUE_ENRICHMENT = {
         "created_at": "2026-05-07",
         "due_date": "2026-06-05",
         "impact": "Remaining Expedia properties are paused pending extra-person rate decision.",
-        "next_action": "Product Team to confirm calculation decision and resume migration path.",
+        "next_action": "Fix deployed to UAT on 11 June 2026. Testing successful and on track to deploy to PROD on 12 June 2026.",
         "escalation_status": "Watch",
         "blocked": True,
         "escalated": False,
