@@ -1321,6 +1321,7 @@ upcoming_chains_data = [
     {
         "chain": "Minor",
         "hotels": "112 hotels",
+        "implementation_lead": "Hazel Acat",
         "go_live": "Sep 1, 2026",
         "channels": "SiteMinder, ORS > OCC Migration",
         "slack": "https://oracle.enterprise.slack.com/archives/C08FRQZAFMW",
@@ -1328,6 +1329,7 @@ upcoming_chains_data = [
     {
         "chain": "Vail Resorts",
         "hotels": "62 hotels",
+        "implementation_lead": "Colin Determann",
         "go_live": "Sep-26 (6 x Pilots) / Nov-26 (remaining hotels)",
         "channels": "Inntopia, Booking, Expedia, Trip, GDS",
         "slack": "https://oracle.enterprise.slack.com/archives/C0AHD3Y0QAW",
@@ -1335,6 +1337,7 @@ upcoming_chains_data = [
     {
         "chain": "Voyages",
         "hotels": "8 hotels",
+        "implementation_lead": "Anil Vempati",
         "go_live": "TBC",
         "channels": "Booking, Expedia, WebBeds, HotelBeds, JTB Group, Luxury Escapes, Flight Centre, Trip.com",
         "slack": "",
@@ -1342,6 +1345,7 @@ upcoming_chains_data = [
     {
         "chain": "MBS",
         "hotels": "Hotels TBC",
+        "implementation_lead": "Nishant Sharma",
         "go_live": "Apr 1, 2027",
         "channels": "To be decided",
         "slack": "",
@@ -1368,6 +1372,7 @@ HEALTH_ORDER = {
 CUSTOMER_PROFILES = {
     "Great Wolf": {
         "accountable_owner": "GWR Team",
+        "implementation_lead": "Nadine Pylypei",
         "support_team": "OGTS / Dev",
         "escalation_contact": "Oracle Support",
         "next_milestone": "Stabilize live channels and complete GDS planning",
@@ -1375,6 +1380,7 @@ CUSTOMER_PROFILES = {
     },
     "Loews": {
         "accountable_owner": "Loews Onboarding Team",
+        "implementation_lead": "Kurtis Cwiek",
         "support_team": "Distribution Engineering",
         "escalation_contact": "Oracle Support",
         "next_milestone": "Post-go-live validation and open issue follow-up",
@@ -1382,6 +1388,7 @@ CUSTOMER_PROFILES = {
     },
     "Pan Pacific": {
         "accountable_owner": "PPHG Team",
+        "implementation_lead": "Hazel Acat",
         "support_team": "OGTS / Distribution UI",
         "escalation_contact": "OGTS Escalation",
         "next_milestone": "Resolve OCC publication gaps and progress OTA validations",
@@ -1669,6 +1676,7 @@ def render_completion_cards(
             )
             issue_count = int(len(completion_issue_records(records, row.portfolio)))
             issue_summary = customer_issue_summary(records, row.portfolio)
+            implementation_lead = profile_for(row.portfolio).get("implementation_lead", "")
             logo_uri = LOGO_URIS.get(row.portfolio, "")
             selected_class = " selected" if row.portfolio == selected_customer else ""
             customer_url = f"?customer={quote(row.portfolio)}"
@@ -1706,6 +1714,7 @@ def render_completion_cards(
                     <span class="completion-health-stat"><strong>{remaining}</strong><span>In progress</span></span>
                     <span class="completion-health-stat"><strong>{issue_count}</strong><span>Issues</span></span>
                   </div>
+                  <p class="completion-detail"><strong>Implementation Lead:</strong> {safe_text(implementation_lead)}</p>
                   <p class="completion-detail"><strong>Issue Summary:</strong> {safe_text(issue_summary)}</p>
                 </a>
                 """
@@ -1859,6 +1868,10 @@ def render_upcoming_cards(rows: pd.DataFrame) -> str:
                 <strong class="upcoming-value">{safe_text(row.go_live)}</strong>
               </div>
               <div>
+                <span class="upcoming-label">Implementation Lead</span>
+                <span class="upcoming-value">{safe_text(row.implementation_lead)}</span>
+              </div>
+              <div>
                 <span class="upcoming-label">Channels</span>
                 <span class="upcoming-value">{safe_text(row.channels)}</span>
               </div>
@@ -1914,6 +1927,7 @@ def profile_for(customer: str) -> dict:
         customer,
         {
             "accountable_owner": "Unassigned",
+            "implementation_lead": "Unassigned",
             "support_team": "Unassigned",
             "escalation_contact": "Unassigned",
             "next_milestone": "Confirm customer plan",
