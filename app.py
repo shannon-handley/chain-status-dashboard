@@ -1154,7 +1154,7 @@ channels_data = [
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Agoda", "status": "LIVE", "go_live_date": "2026-06-09", "notes": "Ongoing testing/validations with Agoda"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Trip.com", "status": "LIVE", "go_live_date": "2026-06-09", "notes": "Ongoing configurations/conversations between Trip.com and PPHG"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Nuitee", "status": "IN PROGRESS", "go_live_date": "", "notes": "Ongoing testing/validations with Nuitee"},
-    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "TA Network", "status": "NEW", "go_live_date": "", "notes": "Pending switch update from OTA, then mapping from PPHG"},
+    {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "TA Network", "status": "LIVE", "go_live_date": "2026-06-18", "notes": "Activated with switch partner (18 June); pending OTA test booking"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Roibos", "status": "NEW", "go_live_date": "", "notes": "Roibos in contact with PPHG regarding contractual details, unable to onboard this channel currently"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Goibibo & MakeMyTrip", "status": "NEW", "go_live_date": "", "notes": "Ongoing configuration work required at OTA end, unable to onboard this channel currently"},
     {"portfolio": "Pan Pacific", "project": "Pan Pacific", "channel": "Emerging Travel", "status": "NEW", "go_live_date": "", "notes": "Awaiting confirmation from OTA to proceed before channel code can be added on PPHG properties"},
